@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>🥺ぷゆゆな集会場🥺</title>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<style>
+  :root{--primary:#1565c0;--accent:#0288d1;--bg:#f5f7fb;--card:#ffffff;--muted:#6b7280;--danger:#ef4444;--ok:#10b981;}
+  *{box-sizing:border-box}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;background:var(--bg);margin:0;padding:0;color:#111}
+  header{background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px}
+  header h1{margin:0;font-size:18px;flex:1}
+  header .userbox{font-size:13px}
+  header button{background:rgba(255,255,255,0.14);border:none;color:#fff;padding:6px 10px;border-radius:6px;cursor:pointer}
+  header button:hover{background:rgba(255,255,255,0.22)}
+  .wrap{max-width:1000px;margin:16px auto;padding:12px}
+  .card{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 2px 6px rgba(2,6,23,0.06);margin-bottom:12px}
+  .card h2{margin:0 0 8px 0;font-size:16px;color:var(--primary)}
+  input[type="text"],textarea,select{width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;background:#fff}
+  textarea{min-height:80px;resize:vertical}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .btn{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;transition:background-color 0.2s;}
+  .btn:disabled{background:var(--muted);cursor:not-allowed;}
+  .btn.warn{background:var(--danger)}
+  .btn.small{padding:6px 8px;font-size:13px;border-radius:6px}
+  /* ▼▼▼ いいねボタン用のスタイルを追加 ▼▼▼ */
+  .btn.liked{background:#e11d48;color:white;}
+  .thread-item{padding:10px;border-radius:8px;border:1px solid #eef2f6;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .thread-link{font-weight:600;color:var(--primary);text-decoration:none}
+  .meta{font-size:13px;color:var(--muted)}
+  .post{padding:10px;border-radius:8px;border:1px solid #f0f3f7;margin-top:8px;background:#fff}
+  .post .meta{font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .post .meta .no{color:var(--accent);cursor:pointer;font-weight:700}
+  .post .body{margin-top:8px;white-space:pre-wrap;word-break:break-word}
+  .post img{max-width:280px;height:auto;border-radius:6px;margin-top:8px;display:block;cursor:pointer}
+  .badge-op{background:#fde68a;color:#92400e;padding:3px 6px;border-radius:999px;font-size:12px}
+  .banned-note{color:var(--danger);font-weight:700}
+  .small-muted{font-size:12px;color:var(--muted)}
+  .setup-guide{padding:20px;text-align:center;font-size:16px;line-height:1.7;}
+  .setup-guide code{background:#eef2f6;padding:2px 6px;border-radius:4px;font-family:monospace;}
+  @media(max-width:640px){.row{flex-direction:column}.post img{max-width:100%}}
+</style>
+</head>
+<body>
+  <header>
+    <h1>🥺ぷゆゆな集会場🥺</h1>
+    <div class="userbox">
+      <span id="userDisplay"></span>
+      <button id="changeNameBtn">名前変更</button>
+    </div>
+    <button id="homeBtn">🏠 ホーム</button>
+    <button id="refreshBtn">🔄 更新</button>
+  </header>
+  <div class="wrap" id="app">
+    <!-- Dynamic content will be rendered here -->
+  </div>
+
+<script>
+// ▼▼▼ あなたのFirebase設定に置き換え済みです ▼▼▼
+const firebaseConfig = {
+  apiKey: "AIzaSyDS3Tlr9Oc4z5Kz2Zg72p9VRayPSAbmwTw",
+  authDomain: "config-f5509.firebaseapp.com",
+  databaseURL: "https://config-f5509-default-rtdb.firebaseio.com",
+  projectId: "config-f5509",
+  storageBucket: "config-f5509.appspot.com",
+  messagingSenderId: "513023904601",
+  appId: "1:513023904601:web:1846aa87aec5de306e1a48",
+  measurementId: "G-KT2LZC2EED"
+};
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+document.addEventListener('DOMContentLoaded', () => {
+  main();
+});
+
+function main() {
+  if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
+    document.getElementById('app').innerHTML = `<div class="card setup-guide"><h2>🚨 設定が必要です！</h2><p>HTMLファイル内の <code>firebaseConfig</code> が未設定です。</p></div>`;
+    return;
+  }
+
+  try {
+    firebase.initializeApp(firebaseConfig);
+  } catch (e) {
+    alert("Firebaseの初期化に失敗しました。設定情報を確認してください。");
+    return;
+  }
+  
+  const db = firebase.database();
+  let activeDataListener = null, activeViewersListener = null, myConnectionRef = null;
+
+  function cleanupListeners() {
+    if(activeDataListener){ activeDataListener.ref.off('value', activeDataListener.callback); }
+    if(activeViewersListener){ activeViewersListener.ref.off('value', activeViewersListener.callback); }
+    if(myConnectionRef){ myConnectionRef.remove(); }
+  }
+  
+  const USER_COOKIE = 'nisiyama_user_v3';
+  const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+  
+  function uid(len=10){ return Math.random().toString(36).slice(2,2+len) + Date.now().toString(36).slice(-4); }
+  function setCookie(name, value, days=365){ const d=new Date(); d.setTime(d.getTime()+(days*24*60*60*1000)); document.cookie=`${name}=${encodeURIComponent(value)};expires=${d.toUTCString()};path=/`; }
+  function getCookie(name){ const kv=document.cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith(name+'=')); return kv?decodeURIComponent(kv.split('=')[1]):null; }
+  function escapeHTML(s){ if(s==null)return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
+  function renderContent(s){ return escapeHTML(s).replace(/&gt;&gt;(\d+)/g, '<a href="#" data-link="$1">&gt;&gt;$1</a>').replace(/\n/g,'<br>'); }
+  
+  function ensureUser(){ let u=getCookie(USER_COOKIE);if(u)try{return JSON.parse(u);}catch(e){} const n={id:uid(8),name:'名無し'+Math.floor(Math.random()*900+100)};setCookie(USER_COOKIE,JSON.stringify(n));return n;}
+  function setUserName(n){ const u=ensureUser();u.name=n||u.name;setCookie(USER_COOKIE,JSON.stringify(u));refreshHeader(); }
+  function getUser(){return ensureUser();}
+  function refreshHeader(){document.getElementById('userDisplay').textContent=`あなた: ${getUser().name}`;}
+
+  function goHome(){ location.hash = ''; }
+  window.addEventListener('hashchange', renderApp);
+
+  function renderHome() {
+    document.getElementById('app').innerHTML = `
+      <div class="card"><h2>新しいスレッドを作成</h2><input id="newTitle" type="text" placeholder="タイトル (必須)" style="margin-bottom:8px;"><input id="newName" type="text" placeholder="名前（任意）" value="${escapeHTML(getUser().name)}" style="margin-bottom:8px;"><textarea id="newText" placeholder="本文 (必須)"></textarea><div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;"><input id="newImage" type="file" accept="image/*"><button class="btn" id="createThreadBtn">スレ作成</button></div></div>
+      <div class="card"><h2>スレッド一覧</h2><div id="threadListContainer">読み込み中...</div></div>`;
+
+    const ref = db.ref('threads').orderByChild('createdAt');
+    const cb = ref.on('value', s => {
+      const c = document.getElementById('threadListContainer'); if(!c) return;
+      const d = Object.values(s.val()||{}).sort((a,b)=>b.createdAt-a.createdAt);
+      if(d.length===0){c.innerHTML=`<div class="small-muted">まだスレッドがありません</div>`;}
+      else{c.innerHTML='';d.forEach(t=>{const i=document.createElement('div');i.className='thread-item';i.innerHTML=`<div><a class="thread-link" href="#thread-${t.id}">${escapeHTML(t.title)}</a><div class="meta">(${(t.posts?Object.keys(t.posts).length:0)}レス)</div></div><div class="small-muted">${new Date(t.createdAt).toLocaleString()}</div>`;c.appendChild(i);});}
+    }, e => { document.getElementById('threadListContainer').innerHTML = `<div class="banned-note">エラー: スレッド一覧を読み込めませんでした。</div>`; console.error(e); });
+    activeDataListener = { ref, callback: cb };
+
+    document.getElementById('createThreadBtn').onclick = async () => {
+      const b=document.getElementById('createThreadBtn');b.disabled=true;b.textContent='作成中...';
+      try {
+        const t=document.getElementById('newTitle').value.trim(),n=document.getElementById('newName').value.trim(),x=document.getElementById('newText').value.trim(),f=document.getElementById('newImage').files[0];
+        if(!t||!x)throw new Error('タイトルと本文は必須です');
+        if(n)setUserName(n);const u=getUser(),i=f?await readFileAsDataURL(f):null,r=db.ref('threads').push(),d=r.key,w=Date.now();
+        // ▼▼▼ いいね機能修正: posts作成時にlikesを削除 ▼▼▼
+        await r.set({id:d,title:t,createdAt:w,op:u,posts:{'1':{id:1,author:u,text:x,img:i,createdAt:w}},postCounter:1});
+        location.hash='thread-'+d;
+      } catch (e) { alert('エラー: '+e.message); b.disabled=false; b.textContent='スレ作成'; }
+    };
+  }
+
+  function renderThread(id) {
+    document.getElementById('app').innerHTML=`<div class="card">読み込み中...</div>`;
+    const ref = db.ref('threads/'+id);
+    const cb = ref.on('value', s => {
+      if(!document.getElementById('app')) return;
+      const t=s.val(); if(!t){document.getElementById('app').innerHTML=`<div class="card">スレが見つかりません。</div>`;return;}
+      const u=getUser(),o=t.op&&t.op.id===u.id,p=Object.values(t.posts||{}).sort((a,b)=>a.id-b.id);
+      document.getElementById('app').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;"><div><h2 style="word-break:break-all;">${escapeHTML(t.title)}</h2><div class="meta">スレ主: <b>${escapeHTML(t.op.name)}</b> ${o?'<span class="badge-op">あなた</span>':''}</div></div><div class="small-muted" style="text-align:right;flex-shrink:0;"><div>${new Date(t.createdAt).toLocaleString()}</div><div style="margin-top:4px;">閲覧中: <span id="viewer-count">...</span>人</div></div></div></div><div id="postsContainer" class="card"></div><div class="card"><h4>レス投稿</h4><input id="replyName" type="text" placeholder="名前" value="${escapeHTML(u.name)}" style="margin-bottom:8px;"><textarea id="replyText" placeholder="本文"></textarea><div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;"><input id="replyImage" type="file" accept="image/*"><button class="btn" id="replyBtn">投稿</button></div></div>`;
+      const c=document.getElementById('postsContainer');c.innerHTML='';p.forEach(p=>{
+        const b=t.banned&&t.banned[p.author.id],d=document.createElement('div');d.className='post';
+        // ▼▼▼ いいね機能修正: いいね数と自分がいいねしたかを取得 ▼▼▼
+        const likers = p.likers || {};
+        const likeCount = Object.keys(likers).length;
+        const userHasLiked = likers[u.id];
+
+        d.innerHTML=`<div class="meta"><span class="no" onclick="window.quote(${p.id})">No.${p.id}</span><b>${escapeHTML(p.author.name)}</b>${p.author.id===t.op.id?'<span class="badge-op">スレ主</span>':''}<span class="small-muted" style="margin-left:auto">${new Date(p.createdAt).toLocaleString()}</span></div>${b?`<div class="banned-note">このユーザーはアク禁されています</div>`:`<div class="body">${renderContent(p.text)}</div>${p.img?`<img src="${p.img}" onclick="this.style.maxWidth=this.style.maxWidth==='100%'?'280px':'100%'">`:''}<div class="controls"><button class="btn small" onclick="window.quote(${p.id})">レス</button>
+        <button class="btn small ${userHasLiked ? 'liked' : ''}" onclick="window.like('${id}',${p.id})">${userHasLiked ? '❤️' : '👍'} ${likeCount}</button>
+        ${p.author.id===u.id?`<button class="btn small" onclick="window.editPost('${id}',${p.id})">編集</button>`:''}${o&&p.author.id!==t.op.id?`<button class="btn small warn" onclick="window.toggleBan('${id}','${p.author.id}','${escapeHTML(p.author.name)}')">${b?'解除':'アク禁'}</button>`:''}</div>`}`;c.appendChild(d);});
+      c.querySelectorAll('a[data-link]').forEach(a=>{a.onclick=e=>{e.preventDefault();document.getElementById(`post-${a.dataset.link}`).scrollIntoView({behavior:'smooth',block:'center'});};});
+      document.getElementById('replyBtn').onclick=()=>postReply(id);
+    }, e=>{document.getElementById('app').innerHTML=`<div class="card banned-note">エラー:スレッドを読み込めませんでした。</div>`;console.error(e);});
+    activeDataListener = { ref, callback: cb };
+    
+    const vRef = db.ref('viewers/'+id); myConnectionRef=vRef.push(true); myConnectionRef.onDisconnect().remove();
+    const vCb=vRef.on('value',s=>{const e=document.getElementById('viewer-count');if(e)e.textContent=s.numChildren();});
+    activeViewersListener = { ref: vRef, callback: vCb };
+  }
+
+  async function postReply(id) {
+    const b=document.getElementById('replyBtn'); b.disabled=true;
+    try {
+      if(document.getElementById('replyName').value.trim()) setUserName(document.getElementById('replyName').value.trim());
+      const t=document.getElementById('replyText').value.trim(),f=document.getElementById('replyImage').files[0];
+      if(!t)throw new Error('本文は必須です');
+      const u=getUser(),n=(await db.ref(`threads/${id}/banned/${u.id}`).once('value')).val();
+      if(n)throw new Error('あなたはこのスレッドでアク禁されています。');
+      const i=f?await readFileAsDataURL(f):null;
+      await db.ref('threads/'+id).transaction(d=>{if(d){const e=(d.postCounter||0)+1;d.posts=d.posts||{};
+      // ▼▼▼ いいね機能修正: posts作成時にlikesを削除 ▼▼▼
+      d.posts[e]={id:e,author:u,text:t,img:i,createdAt:Date.now()};d.postCounter=e;}return d;});
+      document.getElementById('replyText').value='';document.getElementById('replyImage').value='';
+    } catch(e){alert('投稿エラー: '+e.message);} finally{b.disabled=false;}
+  }
+
+  function readFileAsDataURL(f){if(!f.type.startsWith('image/'))throw new Error('画像ファイルを選択してください');if(f.size>MAX_IMAGE_BYTES)throw new Error('画像サイズは2MB以下にしてください');return new Promise((s,j)=>{const r=new FileReader();r.onload=()=>s(r.result);r.onerror=j;r.readAsDataURL(f);});}
+
+  window.quote=(n)=>{const e=document.getElementById('replyText');if(e){e.value+=`>>${n} `;e.focus();}};
+  
+  // ▼▼▼ いいね機能修正: いいね/いいね解除のロジックに変更 ▼▼▼
+  window.like=(threadId, postId)=>{
+    const likersRef = db.ref(`threads/${threadId}/posts/${postId}/likers`);
+    const userId = getUser().id;
+    likersRef.transaction(currentLikers => {
+      if (currentLikers && currentLikers[userId]) {
+        currentLikers[userId] = null; // いいね解除
+      } else {
+        if (!currentLikers) currentLikers = {};
+        currentLikers[userId] = true; // いいねする
+      }
+      return currentLikers;
+    });
+  };
+
+  window.toggleBan=(t,a,n)=>{const r=db.ref(`threads/${t}/banned/${a}`);r.once('value',s=>{if(s.exists()){if(confirm(`${n}のアク禁を解除しますか？`))r.remove();}else{if(confirm(`${n}をアク禁にしますか？`))r.set(true);}});};
+  window.editPost=async(t,p)=>{const r=db.ref(`threads/${t}/posts/${p}`),o=(await r.once('value')).val();if(o.author.id!==getUser().id)return alert('自分の投稿しか編集できません');const n=prompt('編集内容を入力',o.text);if(n!==null)r.update({text:n});};
+
+  function renderApp(){cleanupListeners();refreshHeader();const h=location.hash||'#';if(h.startsWith('#thread-')){renderThread(h.replace('#thread-',''));}else{renderHome();}}
+  document.getElementById('homeBtn').onclick=goHome;
+  document.getElementById('refreshBtn').onclick=()=>location.reload();
+  document.getElementById('changeNameBtn').onclick=()=>{const n=prompt('新しい表示名を入力',getUser().name);if(n!==null&&n.trim()!=='')setUserName(n.trim());};
+  renderApp();
+}
+</script>
+</body>
+</html>
