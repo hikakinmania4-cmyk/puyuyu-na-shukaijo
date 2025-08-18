@@ -7,53 +7,55 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <style>
-  :root{--primary:#1565c0;--accent:#0288d1;--bg:#f5f7fb;--card:#ffffff;--muted:#6b7280;--danger:#ef4444;--ok:#10b981;}
+  :root{--primary:#1565c0;--accent:#0288d1;--bg:#f5f7fb;--card:#ffffff;--muted:#6b7280;--danger:#ef4444;--text-main:#111827;--text-muted:#6b7280;--border-color:#e5e7eb;}
+  .dark-mode{--primary:#60a5fa;--accent:#38bdf8;--bg:#111827;--card:#1f2937;--muted:#9ca3af;--text-main:#f9fafb;--text-muted:#9ca3af;--border-color:#374151;}
   *{box-sizing:border-box}
-  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;background:var(--bg);margin:0;padding:0;color:#111}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;background:var(--bg);margin:0;padding:0;color:var(--text-main);transition:background-color .3s,color .3s;}
   header{background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px}
   header h1{margin:0;font-size:18px;flex:1}
   header .userbox{font-size:13px}
   header button{background:rgba(255,255,255,0.14);border:none;color:#fff;padding:6px 10px;border-radius:6px;cursor:pointer}
   header button:hover{background:rgba(255,255,255,0.22)}
   .wrap{max-width:1000px;margin:16px auto;padding:12px}
-  .card{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 2px 6px rgba(2,6,23,0.06);margin-bottom:12px}
+  .card{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 2px 6px rgba(2,6,23,0.06);margin-bottom:12px;border:1px solid var(--border-color); transition: background-color .3s, border-color .3s;}
   .card h2{margin:0 0 8px 0;font-size:16px;color:var(--primary)}
-  input[type="text"],textarea,select{width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;background:#fff}
+  input[type="text"],textarea,select{width:100%;padding:8px;border:1px solid var(--border-color);border-radius:8px;font-size:14px;background:var(--card);color:var(--text-main);}
   textarea{min-height:80px;resize:vertical}
-  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  label{display:block;font-size:13px;color:var(--text-muted);margin-bottom:6px}
   .btn{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;transition:background-color 0.2s;}
   .btn:disabled{background:var(--muted);cursor:not-allowed;}
   .btn.warn{background:var(--danger)}
   .btn.small{padding:6px 8px;font-size:13px;border-radius:6px}
   .btn.liked{background:#e11d48;color:white;}
-  .thread-item, .history-item{padding:10px;border-radius:8px;border:1px solid #eef2f6;display:flex;align-items:center;justify-content:space-between;gap:12px; margin-bottom: 8px;}
+  .thread-item, .history-item{padding:10px;border-radius:8px;border:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;gap:12px; margin-bottom: 8px;}
   .thread-link{font-weight:600;color:var(--primary);text-decoration:none}
-  .meta{font-size:13px;color:var(--muted)}
-  .post{padding:10px;border-radius:8px;border:1px solid #f0f3f7;margin-top:8px;background:#fff}
-  .post .meta{font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .meta{font-size:13px;color:var(--text-muted)}
+  .post{padding:10px;border-radius:8px;border-top:1px solid var(--border-color);margin-top:8px;background:transparent;}
+  .post:first-child{border-top:none; margin-top:0; padding-top:0;}
+  .post .meta{font-size:12px;color:var(--text-muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .post .meta .no{color:var(--accent);cursor:pointer;font-weight:700}
-  .post .meta .post-author{font-weight:bold;cursor:pointer;}
+  .post .meta .post-author{font-weight:bold;cursor:pointer; color: var(--text-main);}
   .post .body{margin-top:8px;white-space:pre-wrap;word-break:break-word}
   .post .body a{color:var(--primary);}
   .post img{max-width:280px;height:auto;border-radius:6px;margin-top:8px;display:block;cursor:pointer}
-  .badge-op{background:#fde68a;color:#92400e;padding:3px 6px;border-radius:999px;font-size:12px}
+  .badge-op{background:var(--primary);color:white;padding:3px 6px;border-radius:999px;font-size:12px}
   .banned-note{color:var(--danger);font-weight:700}
-  .small-muted{font-size:12px;color:var(--muted)}
-  .setup-guide{padding:20px;text-align:center;font-size:16px;line-height:1.7;}
-  .setup-guide code{background:#eef2f6;padding:2px 6px;border-radius:4px;font-family:monospace;}
+  .small-muted{font-size:12px;color:var(--text-muted)}
   .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:1000;}
-  .modal-content{background:var(--bg);border-radius:10px;width:90%;max-width:600px;max-height:80%;display:flex;flex-direction:column;}
-  .modal-header{padding:12px 16px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;}
+  .modal-content{background:var(--bg);border-radius:10px;width:90%;max-width:600px;max-height:80%;display:flex;flex-direction:column;border:1px solid var(--border-color);}
+  .modal-header{padding:12px 16px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center;}
   .modal-header h2{font-size:18px;color:var(--primary);margin:0;}
-  .modal-close-btn{font-size:24px;background:none;border:none;cursor:pointer;color:var(--muted);}
+  .modal-close-btn{font-size:24px;background:none;border:none;cursor:pointer;color:var(--text-muted);}
   .modal-body{padding:16px;overflow-y:auto;}
-  #profileId{color:var(--muted);font-size:13px;margin:0 0 12px 0;word-break:break-all;}
-  .profile-post-item{background:var(--card);padding:10px;border-radius:8px;margin-bottom:10px;font-size:14px;}
-  .profile-post-item .title{font-size:13px;color:var(--muted);font-weight:bold;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #profileId{color:var(--text-muted);font-size:13px;margin:0 0 12px 0;word-break:break-all;}
+  .profile-post-item{background:var(--card);padding:10px;border-radius:8px;margin-bottom:10px;font-size:14px;border:1px solid var(--border-color);}
+  .profile-post-item .title{font-size:13px;color:var(--text-muted);font-weight:bold;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .profile-post-item .body{margin-bottom:8px;}
   @media(max-width:600px){header{flex-wrap:wrap;padding:8px;}.userbox{order:1;width:100%;text-align:right;} header h1{flex:1 1 100%;order:0; text-align:center; margin-bottom:8px;}}
 </style>
 </head>
+<!-- ▼▼▼ パート1はここまで ▼▼▼ -->
+  <!-- ▼▼▼ パート2はここから ▼▼▼ -->
 <body>
   <header>
     <h1>🥺ぷゆゆな集会場🥺</h1>
@@ -63,6 +65,7 @@
     </div>
     <button id="homeBtn">🏠 ホーム</button>
     <button id="historyBtn">📜 履歴</button>
+    <button id="themeToggleBtn">🌙</button>
     <button id="refreshBtn">🔄 更新</button>
   </header>
   <div class="wrap" id="app"></div>
@@ -92,11 +95,14 @@ const firebaseConfig = {
   measurementId: "G-KT2LZC2EED"
 };
 
+// ▼▼▼ NGワード機能: NGワードをここで自由に設定できます ▼▼▼
+const NG_WORDS = ['바보', '멍청이', '죽어'];
+
 document.addEventListener('DOMContentLoaded', () => { main(); });
 
 function main() {
   if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
-    document.getElementById('app').innerHTML = `<div class="card setup-guide"><h2>🚨 設定が必要です！</h2><p>HTMLファイル内の <code>firebaseConfig</code> が未設定です。</p></div>`; return;
+    document.getElementById('app').innerHTML = `<div class="card"><h2>🚨 設定が必要です！</h2><p>HTMLファイル内の <code>firebaseConfig</code> が未設定です。</p></div>`; return;
   }
   try { firebase.initializeApp(firebaseConfig); } catch (e) { alert("Firebaseの初期化に失敗しました。"); return; }
   
@@ -114,6 +120,7 @@ function main() {
   const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
   const POST_LIMIT = 1000;
   const HISTORY_KEY = 'puyuyun_history_v1';
+  const THEME_KEY = 'puyuyun_theme';
   
   function uid(l=8){return Math.random().toString(36).slice(2,2+l).toUpperCase();}
   function setCookie(n,v,d=365){const e=new Date();e.setTime(e.getTime()+(d*24*60*60*1000));document.cookie=`${n}=${encodeURIComponent(v)};expires=${e.toUTCString()};path=/;SameSite=Lax`;}
@@ -139,23 +146,7 @@ function main() {
     return { id: dailyUser.id, name: username };
   }
   
-  async function setUserName(newName, oldName) {
-    const updates = {};
-    const newNameKey = newName.toLowerCase();
-    
-    // 新しい名前を登録
-    updates[`usernames/${newNameKey}`] = getUser().id;
-    // もし古い名前があれば、リストから削除
-    if (oldName) {
-      const oldNameKey = oldName.toLowerCase();
-      updates[`usernames/${oldNameKey}`] = null;
-    }
-    
-    await db.ref().update(updates);
-    setCookie(USERNAME_COOKIE, newName, 365);
-    refreshHeader();
-  }
-
+  function setUserName(n){setCookie(USERNAME_COOKIE, n, 365);refreshHeader();}
   function getUser(){return ensureUser();}
   function refreshHeader(){document.getElementById('userDisplay').textContent=`あなた: ${getUser().name}`;}
 
@@ -165,24 +156,27 @@ function main() {
 
   function goHome(){location.hash='';}
   window.addEventListener('hashchange', renderApp);
-    function renderHome() {
+<!-- ▼▼▼ パート2はここまで ▼▼▼ -->
+  <!-- ▼▼▼ パート3はここから ▼▼▼ -->
+  function renderHome() {
     document.getElementById('app').innerHTML = `<div class="card"><h2>新しいスレッドを作成</h2><input id="newTitle" type="text" placeholder="タイトル (必須)" style="margin-bottom:8px;"><input id="newName" type="text" placeholder="名前（任意）" value="${escapeHTML(getUser().name)}" style="margin-bottom:8px;"><textarea id="newText" placeholder="本文 (必須)"></textarea><div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;"><input id="newImage" type="file" accept="image/*"><button class="btn" id="createThreadBtn">スレ作成</button></div></div><div class="card"><h2>スレッド一覧</h2><div id="threadListContainer">読み込み中...</div></div>`;
-    const ref = db.ref('threads').orderByChild('createdAt');
+    const ref = db.ref('threads').orderByChild('lastUpdatedAt');
     const cb = ref.on('value', s => {
       const c = document.getElementById('threadListContainer'); if(!c) return;
-      const d = Object.values(s.val()||{}).sort((a,b)=>b.createdAt-a.createdAt);
+      const d = Object.values(s.val()||{}).sort((a,b)=>b.lastUpdatedAt-a.lastUpdatedAt);
       if(d.length===0){c.innerHTML=`<div class="small-muted">まだスレッドがありません</div>`;}
-      else{c.innerHTML='';d.forEach(t=>{const i=document.createElement('div');i.className='thread-item';i.innerHTML=`<div><a class="thread-link" href="#thread-${t.id}">${escapeHTML(t.title)}</a><div class="meta">(${(t.posts?Object.keys(t.posts).length:0)}レス)</div></div><div class="small-muted">${new Date(t.createdAt).toLocaleString()}</div>`;c.appendChild(i);});}
-    }, e => { document.getElementById('threadListContainer').innerHTML = `<div class="banned-note">エラー: スレッド一覧を読み込めませんでした。</div>`; console.error(e); });
+      else{c.innerHTML='';d.forEach(t=>{const i=document.createElement('div');i.className='thread-item';i.innerHTML=`<div><a class="thread-link" href="#thread-${t.id}">${escapeHTML(t.title)}</a><div class="meta">(${(t.posts?Object.keys(t.posts).length:0)}レス)</div></div><div class="small-muted">${new Date(t.lastUpdatedAt).toLocaleString()}</div>`;c.appendChild(i);});}
+    }, e => { console.error(e); });
     activeDataListener = { ref, callback: cb };
     document.getElementById('createThreadBtn').onclick = async () => {
       const b=document.getElementById('createThreadBtn');b.disabled=true;b.textContent='作成中...';
       try {
         const t=document.getElementById('newTitle').value.trim(),n=document.getElementById('newName').value.trim(),x=document.getElementById('newText').value.trim(),f=document.getElementById('newImage').files[0];
         if(!t||!x)throw new Error('タイトルと本文は必須です');
-        const u=getUser(); if(n&&n!==u.name){const isTaken = await isNameTaken(n, u.id); if(isTaken) throw new Error("その名前は既に使用されています。"); await setUserName(n, u.name);}
+        if(containsNGWord(t) || containsNGWord(x)) throw new Error('不適切な単語が含まれています。');
+        const u=getUser(); if(n&&n!==u.name){ setUserName(n); }
         const i=f?await readFileAsDataURL(f):null,r=db.ref('threads').push(),d=r.key,w=Date.now();
-        await r.set({id:d,title:t,createdAt:w,op:getUser(),posts:{'1':{id:1,author:getUser(),text:x,img:i,createdAt:w}},postCounter:1});
+        await r.set({id:d,title:t,createdAt:w,lastUpdatedAt:w,op:getUser(),posts:{'1':{id:1,author:getUser(),text:x,img:i,createdAt:w}},postCounter:1});
         location.hash='thread-'+d;
       } catch (e) { alert('エラー: '+e.message); b.disabled=false; b.textContent='スレ作成'; }
     };
@@ -207,17 +201,17 @@ function main() {
       const postCount = p.length;
       const opPost = p[0] || {};
       const likers = opPost.likers || {}, likeCount = Object.keys(likers).length, userHasLikedOp = likers[u.id];
-      let replyFormHtml = (postCount>=POST_LIMIT)?`<div class="banned-note" style="text-align:center;padding:10px;">このスレッドは${POST_LIMIT}レスに達しました。</div>`:`<h4>レス投稿</h4><input id="replyName" type="text" placeholder="名前" value="${escapeHTML(u.name)}" style="margin-bottom:8px;"><textarea id="replyText" placeholder="本文"></textarea><div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;"><input id="replyImage" type="file" accept="image/*"><button class="btn" id="replyBtn">投稿</button></div>`;
+      let replyFormHtml = (postCount>=POST_LIMIT)?`<div class="banned-note" style="text-align:center;padding:10px;">このスレッドは${POST_LIMIT}レスに達しました。</div>`:`<h4>レス投稿</h4><input id="replyName" type="text" placeholder="名前" value="${escapeHTML(u.name)}" style="margin-bottom:8px;"><small class="small-muted" style="display:block;margin-top:-6px;margin-bottom:8px;">名前欄に sage と入力するとスレッドがトップに上がらなくなります。</small><textarea id="replyText" placeholder="本文"></textarea><div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;"><input id="replyImage" type="file" accept="image/*"><button class="btn" id="replyBtn">投稿</button></div>`;
       const deleteButtonHtml = o ? `<button class="btn small warn" onclick="window.deleteThread('${id}')">スレを削除</button>` : '';
-      const repliesHtml = p.slice(1).map(p => {
-          const b=t.banned&&t.banned[p.author.id], l=p.likers||{}, k=Object.keys(l).length, h=l[u.id];
-          return `<div class="post" id="post-${p.id}"><div class="meta"><span class="no" onclick="window.quote(${p.id})">No.${p.id}</span><b class="post-author" onclick="window.showUserProfile('${escapeHTML(p.author.name).replace(/'/g, "\\'")}', '${p.author.id}')">${escapeHTML(p.author.name)}</b> (ID: ${p.author.id})${p.author.id===t.op.id?'<span class="badge-op">スレ主</span>':''}<span class="small-muted" style="margin-left:auto">${new Date(p.createdAt).toLocaleString()}</span></div>${b?`<div class="banned-note">このユーザーはアク禁されています</div>`:`<div class="body">${renderContent(p.text)}</div>${p.img?`<img src="${p.img}" onclick="this.style.maxWidth=this.style.maxWidth==='100%'?'280px':'100%'">`:''}<div class="controls"><button class="btn small" onclick="window.quote(${p.id})">レス</button><button class="btn small ${h?'liked':''}" onclick="window.like('${id}',${p.id})">${h?'❤️':'👍'} ${k}</button>${p.author.id===u.id?`<button class="btn small" onclick="window.editPost('${id}',${p.id})">編集</button>`:''}${o&&p.author.id!==t.op.id?`<button class="btn small warn" onclick="window.toggleBan('${id}','${p.author.id}','${escapeHTML(p.author.name).replace(/'/g, "\\'")}')">${b?'解除':'アク禁'}</button>`:''}</div>`}</div>`;
+      const repliesHtml = p.slice(1).map(post => {
+          const b=t.banned&&t.banned[post.author.id], l=post.likers||{}, k=Object.keys(l).length, h=l[u.id];
+          return `<div class="post" id="post-${post.id}"><div class="meta"><span class="no" onclick="window.quote(${post.id})">No.${post.id}</span><b class="post-author" onclick="window.showUserProfile('${escapeHTML(post.author.name).replace(/'/g, "\\'")}', '${post.author.id}')">${escapeHTML(post.author.name)}</b> (ID: ${post.author.id})${post.author.id===t.op.id?'<span class="badge-op">スレ主</span>':''}<span class="small-muted" style="margin-left:auto">${new Date(post.createdAt).toLocaleString()}</span></div>${b?`<div class="banned-note">このユーザーはアク禁されています</div>`:`<div class="body">${renderContent(post.text)}</div>${post.img?`<img src="${post.img}" onclick="this.style.maxWidth=this.style.maxWidth==='100%'?'280px':'100%'">`:''}<div class="controls"><button class="btn small" onclick="window.quote(${post.id})">レス</button><button class="btn small ${h?'liked':''}" onclick="window.like('${id}',${post.id})">${h?'❤️':'👍'} ${k}</button>${post.author.id===u.id?`<button class="btn small" onclick="window.editPost('${id}',${post.id})">編集</button>`:''}${o&&p.author.id!==t.op.id?`<button class="btn small warn" onclick="window.toggleBan('${id}','${post.author.id}','${escapeHTML(post.author.name).replace(/'/g, "\\'")}')">${b?'解除':'アク禁'}</button>`:''}</div>`}</div>`;
       }).join('');
-      const postsContainerHtml = p.length > 1 ? `<div class="card">${repliesHtml}</div>` : '';
-      document.getElementById('app').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;"><div><h2 style="word-break:break-all;">${escapeHTML(t.title)}</h2><div class="meta">スレ主: <b class="post-author" onclick="window.showUserProfile('${escapeHTML(t.op.name).replace(/'/g, "\\'")}', '${t.op.id}')">${escapeHTML(t.op.name)}</b> (ID: ${t.op.id}) ${o?'<span class="badge-op">あなた</span>':''}</div></div><div style="text-align:right;flex-shrink:0;">${deleteButtonHtml}<div class="small-muted">作成: ${new Date(t.createdAt).toLocaleString()}</div><div class="small-muted" style="margin-top:4px;">閲覧中: <span id="viewer-count">...</span>人</div></div></div><div class="post" style="padding:10px 0 0 0; margin-top:10px; border-top: 1px solid #f0f3f7;"><div class="body">${renderContent(opPost.text)}</div>${opPost.img?`<img src="${opPost.img}" onclick="this.style.maxWidth=this.style.maxWidth==='100%'?'280px':'100%'">`:''}<div class="controls"><button class="btn small ${userHasLikedOp?'liked':''}" onclick="window.like('${id}',${opPost.id})">${userHasLikedOp?'❤️':'👍'} ${likeCount}</button>${opPost.author.id===u.id?`<button class="btn small" onclick="window.editPost('${id}',${opPost.id})">編集</button>`:''}</div></div></div>${postsContainerHtml}<div class="card">${replyFormHtml}</div>`;
+      const postsContainerHtml = p.length > 1 ? `<div class="card" id="postsContainer">${repliesHtml}</div>` : '';
+      document.getElementById('app').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;"><div><h2 style="word-break:break-all;">${escapeHTML(t.title)}</h2><div class="meta">スレ主: <b class="post-author" onclick="window.showUserProfile('${escapeHTML(t.op.name).replace(/'/g, "\\'")}', '${t.op.id}')">${escapeHTML(t.op.name)}</b> (ID: ${t.op.id}) ${o?'<span class="badge-op">あなた</span>':''}</div></div><div style="text-align:right;flex-shrink:0;">${deleteButtonHtml}<div class="small-muted">作成: ${new Date(t.createdAt).toLocaleString()}</div><div class="small-muted" style="margin-top:4px;">閲覧中: <span id="viewer-count">...</span>人</div></div></div><div class="post" style="padding-left:10px;padding-right:10px;"><div class="body">${renderContent(opPost.text)}</div>${opPost.img?`<img src="${opPost.img}" onclick="this.style.maxWidth=this.style.maxWidth==='100%'?'280px':'100%'">`:''}<div class="controls"><button class="btn small ${userHasLikedOp?'liked':''}" onclick="window.like('${id}',${opPost.id})">${userHasLikedOp?'❤️':'👍'} ${likeCount}</button>${opPost.author.id===u.id?`<button class="btn small" onclick="window.editPost('${id}',${opPost.id})">編集</button>`:''}</div></div></div>${postsContainerHtml}<div class="card">${replyFormHtml}</div>`;
       document.querySelectorAll('a[data-link]').forEach(a=>{a.onclick=e=>{e.preventDefault();document.getElementById(`post-${a.dataset.link}`).scrollIntoView({behavior:'smooth',block:'center'});};});
       if(postCount<POST_LIMIT){document.getElementById('replyBtn').onclick=()=>postReply(id);}
-    }, e=>{document.getElementById('app').innerHTML=`<div class="card banned-note">エラー:スレッドを読み込めませんでした。</div>`;console.error(e);});
+    }, e=>{console.error(e);});
     activeDataListener={ref,callback:cb};const vRef=db.ref('viewers/'+id);myConnectionRef=vRef.push(true);myConnectionRef.onDisconnect().remove();const vCb=vRef.on('value',s=>{const e=document.getElementById('viewer-count');if(e)e.textContent=s.numChildren();});activeViewersListener={ref:vRef,callback:vCb};
   }
 
@@ -228,22 +222,28 @@ function main() {
       const currentPosts = snapshot.val() || {};
       if (Object.keys(currentPosts).length >= POST_LIMIT) { throw new Error(`このスレッドは${POST_LIMIT}レスの上限に達しました。`); }
       const currentUser = getUser(); const newName = document.getElementById('replyName').value.trim();
-      if(newName && newName !== currentUser.name) { const isTaken = await isNameTaken(newName, currentUser.id); if(isTaken){ throw new Error('その名前は既に使用されています。'); } await setUserName(newName, currentUser.name); }
+      const isSage = newName.toLowerCase() === 'sage';
+      if(newName && newName !== currentUser.name && !isSage) { setUserName(newName); }
       const t=document.getElementById('replyText').value.trim(),f=document.getElementById('replyImage').files[0];
       if(!t)throw new Error('本文は必須です');
+      if(containsNGWord(t)) throw new Error('不適切な単語が含まれています。');
       const u=getUser(),n=(await db.ref(`threads/${id}/banned/${u.id}`).once('value')).val();
       if(n)throw new Error('あなたはこのスレッドでアク禁されています。');
       const i=f?await readFileAsDataURL(f):null;
-      await db.ref('threads/'+id).transaction(d=>{if(d){const e=(d.postCounter||0)+1;d.posts=d.posts||{};d.posts[e]={id:e,author:u,text:t,img:i,createdAt:Date.now()};d.postCounter=e;}return d;});
+      const updates = {};
+      const newPostRef = db.ref(`threads/${id}/posts`).push();
+      const newPostId = newPostRef.key;
+      updates[`threads/${id}/posts/${newPostId}`] = {id:newPostId, author:u, text:t, img:i, createdAt:Date.now()};
+      updates[`threads/${id}/postCounter`] = firebase.database.ServerValue.increment(1);
+      if(!isSage) { updates[`threads/${id}/lastUpdatedAt`] = firebase.database.ServerValue.TIMESTAMP; }
+      await db.ref().update(updates);
       document.getElementById('replyText').value='';document.getElementById('replyImage').value='';
     } catch(e){alert('投稿エラー: '+e.message);} finally{b.disabled=false;}
   }
-
-  async function isNameTaken(name, currentUserId) {
-    const nameKey = name.toLowerCase();
-    const snapshot = await db.ref(`usernames/${nameKey}`).once('value');
-    const ownerId = snapshot.val();
-    return ownerId !== null && ownerId !== currentUserId;
+  
+  function containsNGWord(text) {
+    const lowerText = text.toLowerCase();
+    return NG_WORDS.some(word => lowerText.includes(word.toLowerCase()));
   }
 
   function readFileAsDataURL(f){if(!f.type.startsWith('image/'))throw new Error('画像ファイルを選択してください');if(f.size>MAX_IMAGE_BYTES)throw new Error(`画像サイズは${MAX_IMAGE_BYTES/1024/1024}MB以下にしてください`);return new Promise((s,j)=>{const r=new FileReader();r.onload=()=>s(r.result);r.onerror=j;r.readAsDataURL(f);});}
@@ -251,8 +251,8 @@ function main() {
   window.quote=(n)=>{const e=document.getElementById('replyText');if(e){e.value+=`>>${n} `;e.focus();}};
   window.like=(t,p)=>{const r=db.ref(`threads/${t}/posts/${p}/likers`),u=getUser().id;r.transaction(c=>{if(c&&c[u]){c[u]=null;}else{if(!c)c={};c[u]=true;}return c;});};
   window.toggleBan=(t,a,n)=>{const r=db.ref(`threads/${t}/banned/${a}`);r.once('value',s=>{if(s.exists()){if(confirm(`${n}のアク禁を解除しますか？`))r.remove();}else{if(confirm(`${n}をアク禁にしますか？`))r.set(true);}});};
-  window.editPost=async(t,p)=>{const r=db.ref(`threads/${t}/posts/${p}`),o=(await r.once('value')).val();if(o.author.id!==getUser().id)return alert('自分の投稿しか編集できません');const n=prompt('編集内容を入力',o.text);if(n!==null)r.update({text:n});};
-  window.deleteThread = (threadId) => { if (confirm('本当にこのスレッドを削除しますか？\nこの操作は元に戻すことができません。')) { db.ref('threads/' + threadId).remove().then(()=>{alert('スレッドを削除しました。');goHome();}).catch((e)=>{alert('スレッドの削除に失敗しました。');});}};
+  window.editPost=async(t,p)=>{const r=db.ref(`threads/${t}/posts/${p}`),o=(await r.once('value')).val();if(o.author.id!==getUser().id)return alert('自分の投稿しか編集できません');const n=prompt('編集内容を入力',o.text);if(n!==null&&!containsNGWord(n)){r.update({text:n});}else if(containsNGWord(n)){alert('不適切な単語が含まれています。')}};
+  window.deleteThread = (threadId) => { if (confirm('本当にこのスレッドを削除しますか？\nこの操作は元に戻すことができません。')) { db.ref('threads/' + threadId).remove().then(()=>{goHome();}).catch((e)=>{alert('スレッドの削除に失敗しました。');});}};
   window.showUserProfile = async (name, id) => {
     const modal = document.getElementById('profileModal'); const nameEl = document.getElementById('profileName'); const idEl = document.getElementById('profileId'); const postsListEl = document.getElementById('profilePostsList');
     nameEl.textContent = name; idEl.textContent = `ID: ${id}`; postsListEl.innerHTML = '投稿を読み込み中...'; modal.style.display = 'flex';
@@ -260,7 +260,7 @@ function main() {
       const snapshot = await db.ref('threads').once('value'); const allThreads = snapshot.val() || {}; const userPosts = [];
       for (const threadId in allThreads) { const thread = allThreads[threadId]; if (thread.posts) { for (const postId in thread.posts) { const post = thread.posts[postId]; if (post.author && post.author.id === id) { userPosts.push({ thread, post }); }}}}
       if (userPosts.length === 0) { postsListEl.innerHTML = '<div class="small-muted">このユーザーの投稿はありません。</div>'; }
-      else { postsListEl.innerHTML = userPosts.sort((a,b) => b.post.createdAt - a.post.createdAt).map(item => `<div class="profile-post-item"><div class="title">スレ: ${escapeHTML(item.thread.title)}</div><div class="body">${renderContent(item.post.text.substring(0, 100))}${item.post.text.length > 100 ? '...' : ''}</div><button class="btn small" onclick="window.goToPost('${item.thread.id}', ${item.post.id})">投稿に飛ぶ</button></div>`).join(''); }
+      else { postsListEl.innerHTML = userPosts.sort((a,b) => b.post.createdAt - a.post.createdAt).map(item => `<div class="profile-post-item"><div class="title">スレ: ${escapeHTML(item.thread.title)}</div><div class="body">${renderContent(item.post.text.substring(0, 100))}${item.post.text.length > 100 ? '...' : ''}</div><button class="btn small" onclick="window.goToPost('${item.thread.id}', '${item.post.id}')">投稿に飛ぶ</button></div>`).join(''); }
     } catch (e) { postsListEl.innerHTML = '<div class="banned-note">投稿の読み込みに失敗しました。</div>'; console.error(e); }
   };
   window.closeUserProfile = () => { document.getElementById('profileModal').style.display = 'none'; };
@@ -272,6 +272,17 @@ function main() {
     }, 500);
   };
   
+  function applyTheme(theme) {
+    const btn = document.getElementById('themeToggleBtn');
+    if (theme === 'dark') {
+      document.body.classList.add('dark-mode');
+      if(btn) btn.textContent = '☀️';
+    } else {
+      document.body.classList.remove('dark-mode');
+      if(btn) btn.textContent = '🌙';
+    }
+  }
+
   function renderApp(){
     cleanupListeners(); refreshHeader(); const h=location.hash||'#';
     if(h.startsWith('#thread-')){renderThread(h.replace('#thread-',''));}
@@ -282,28 +293,5 @@ function main() {
   document.getElementById('homeBtn').onclick = goHome;
   document.getElementById('historyBtn').onclick = () => location.hash = 'history';
   document.getElementById('refreshBtn').onclick = () => location.reload();
-  document.getElementById('changeNameBtn').onclick = async () => {
-    const currentUser = getUser();
-    const n = prompt('新しい表示名を入力してください', currentUser.name);
-    if(n === null || n.trim() === '' || n.trim() === currentUser.name) return;
-    const newName = n.trim();
-    try {
-      const isTaken = await isNameTaken(newName, currentUser.id);
-      if(isTaken) {
-        alert('その名前は既に使用されています。別の名前を入力してください。');
-      } else {
-        await setUserName(newName, currentUser.name);
-        alert('名前に変更しました。');
-      }
-    } catch (error) {
-      alert('名前の確認中にエラーが発生しました。'); console.error(error);
-    }
-  };
-  document.getElementById('closeProfileBtn').onclick = window.closeUserProfile;
-  document.getElementById('profileModal').onclick = (e) => { if (e.target === e.currentTarget) window.closeUserProfile(); };
-
-  renderApp();
-}
-</script>
-</body>
-</html>
+  document.getElementById('changeNameBtn').onclick = () => { const n = prompt('新しい表示名を入力してください', getUser().name); if(n !== null && n.trim() !== '') setUserName(n.trim()); };
+  document.getElementById('themeToggleBtn').onclic
