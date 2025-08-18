@@ -54,8 +54,6 @@
   @media(max-width:600px){header{flex-wrap:wrap;padding:8px;}.userbox{order:1;width:100%;text-align:right;} header h1{flex:1 1 100%;order:0; text-align:center; margin-bottom:8px;}}
 </style>
 </head>
-<!-- ▼▼▼ パート1はここまで ▼▼▼ -->
-  <!-- ▼▼▼ パート2はここから ▼▼▼ -->
 <body>
   <header>
     <h1>🥺ぷゆゆな集会場🥺</h1>
@@ -94,9 +92,8 @@ const firebaseConfig = {
   appId: "1:513023904601:web:1846aa87aec5de306e1a48",
   measurementId: "G-KT2LZC2EED"
 };
-
 // ▼▼▼ NGワード機能: NGワードをここで自由に設定できます ▼▼▼
-const NG_WORDS = ['바보', '멍청이', '죽어'];
+const NG_WORDS = ['바보', '멍청이', '죽어','効いてて草'];
 
 document.addEventListener('DOMContentLoaded', () => { main(); });
 
@@ -156,8 +153,6 @@ function main() {
 
   function goHome(){location.hash='';}
   window.addEventListener('hashchange', renderApp);
-<!-- ▼▼▼ パート2はここまで ▼▼▼ -->
-  <!-- ▼▼▼ パート3はここから ▼▼▼ -->
   function renderHome() {
     document.getElementById('app').innerHTML = `<div class="card"><h2>新しいスレッドを作成</h2><input id="newTitle" type="text" placeholder="タイトル (必須)" style="margin-bottom:8px;"><input id="newName" type="text" placeholder="名前（任意）" value="${escapeHTML(getUser().name)}" style="margin-bottom:8px;"><textarea id="newText" placeholder="本文 (必須)"></textarea><div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;"><input id="newImage" type="file" accept="image/*"><button class="btn" id="createThreadBtn">スレ作成</button></div></div><div class="card"><h2>スレッド一覧</h2><div id="threadListContainer">読み込み中...</div></div>`;
     const ref = db.ref('threads').orderByChild('lastUpdatedAt');
