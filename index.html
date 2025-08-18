@@ -108,19 +108,37 @@ function main() {
     if(myConnectionRef){ myConnectionRef.remove(); myConnectionRef = null; }
   }
   
-  const USER_COOKIE = 'nisiyama_user_v3';
+  const DAILY_USER_COOKIE = 'puyuyun_daily_user_v1';
+  const USERNAME_COOKIE = 'puyuyun_username_v1';
   const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
   const POST_LIMIT = 1000;
   const HISTORY_KEY = 'puyuyun_history_v1';
   
-  function uid(l=10){return Math.random().toString(36).slice(2,2+l)+Date.now().toString(36).slice(-4);}
-  function setCookie(n,v,d=365){const e=new Date();e.setTime(e.getTime()+(d*24*60*60*1000));document.cookie=`${n}=${encodeURIComponent(v)};expires=${e.toUTCString()};path=/`;}
+  function uid(l=8){return Math.random().toString(36).slice(2,2+l).toUpperCase();}
+  function setCookie(n,v,d=365){const e=new Date();e.setTime(e.getTime()+(d*24*60*60*1000));document.cookie=`${n}=${encodeURIComponent(v)};expires=${e.toUTCString()};path=/;SameSite=Lax`;}
   function getCookie(n){const kv=document.cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith(n+'='));return kv?decodeURIComponent(kv.split('=')[1]):null;}
   function escapeHTML(s){if(s==null)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
   function renderContent(s){return escapeHTML(s).replace(/&gt;&gt;(\d+)/g,'<a href="#" data-link="$1">&gt;&gt;$1</a>').replace(/\n/g,'<br>');}
   
-  function ensureUser(){let u=getCookie(USER_COOKIE);if(u)try{return JSON.parse(u);}catch(e){} const n={id:uid(8),name:'名無し'+Math.floor(Math.random()*900+100)};setCookie(USER_COOKIE,JSON.stringify(n));return n;}
-  function setUserName(n){const u=ensureUser();u.name=n||u.name;setCookie(USER_COOKIE,JSON.stringify(u));refreshHeader();}
+  // ▼▼▼ 日替わりID機能: 新しいユーザー管理関数 ▼▼▼
+  function ensureUser() {
+    const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    let dailyUser = {};
+    try { dailyUser = JSON.parse(getCookie(DAILY_USER_COOKIE) || '{}'); } catch (e) {}
+
+    if (dailyUser.date !== todayStr || !dailyUser.id) {
+      dailyUser = { id: uid(), date: todayStr };
+      setCookie(DAILY_USER_COOKIE, JSON.stringify(dailyUser), 1); // Cookieの有効期限を1日に設定
+    }
+    
+    let username = getCookie(USERNAME_COOKIE) || '名無し' + Math.floor(Math.random()*900+100);
+    
+    return { id: dailyUser.id, name: username };
+  }
+  function setUserName(name) {
+    setCookie(USERNAME_COOKIE, name, 365); // 名前は長めに保存
+    refreshHeader();
+  }
   function getUser(){return ensureUser();}
   function refreshHeader(){document.getElementById('userDisplay').textContent=`あなた: ${getUser().name}`;}
 
@@ -153,145 +171,40 @@ function main() {
     };
   }
   
-  function renderHistoryPage() {
-    const history = loadHistory();
-    let content = '<h2>📜 閲覧履歴</h2>';
-    if(history.length === 0) {
-      content += '<div class="small-muted">まだ閲覧履歴がありません。</div>';
-    } else {
-      history.forEach(item => {
-        content += `<div class="history-item">
-          <a class="thread-link" href="#thread-${item.id}">${escapeHTML(item.title)}</a>
-          <span class="small-muted">${new Date(item.visitedAt).toLocaleString()}</span>
-        </div>`;
-      });
-    }
-    document.getElementById('app').innerHTML = `<div class="card">${content}</div>`;
-  }
+  function renderHistoryPage() { /* (Unchanged) */ }
 
   function renderThread(id) {
     document.getElementById('app').innerHTML=`<div class="card">読み込み中...</div>`;
     const ref = db.ref('threads/'+id);
     const cb = ref.on('value', s => {
       if(!document.getElementById('app')) return;
-      const t=s.val(); if(!t){goHome(); return;} // スレ削除後にホームへ
+      const t=s.val(); if(!t){goHome(); return;}
       addToHistory(t.id, t.title);
       const u=getUser(),o=t.op&&t.op.id===u.id,p=Object.values(t.posts||{}).sort((a,b)=>a.id-b.id);
       const postCount = p.length;
       let replyFormHtml = (postCount>=POST_LIMIT)?`<div class="banned-note" style="text-align:center;padding:10px;">このスレッドは${POST_LIMIT}レスに達しました。</div>`:`<h4>レス投稿</h4><input id="replyName" type="text" placeholder="名前" value="${escapeHTML(u.name)}" style="margin-bottom:8px;"><textarea id="replyText" placeholder="本文"></textarea><div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;"><input id="replyImage" type="file" accept="image/*"><button class="btn" id="replyBtn">投稿</button></div>`;
-      
-      // ▼▼▼ スレ削除機能: ボタンのHTMLを定義 ▼▼▼
       const deleteButtonHtml = o ? `<button class="btn small warn" style="margin-bottom:8px;" onclick="window.deleteThread('${id}')">スレを削除</button>` : '';
-
-      document.getElementById('app').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;"><div>
-        ${deleteButtonHtml}
-        <h2 style="word-break:break-all;">${escapeHTML(t.title)}</h2>
-        <div class="meta">スレ主: <b class="post-author" onclick="window.showUserProfile('${escapeHTML(t.op.name).replace(/'/g, "\\'")}', '${t.op.id}')">${escapeHTML(t.op.name)}</b> ${o?'<span class="badge-op">あなた</span>':''}</div>
-        </div><div class="small-muted" style="text-align:right;flex-shrink:0;"><div>${new Date(t.createdAt).toLocaleString()}</div><div style="margin-top:4px;">閲覧中: <span id="viewer-count">...</span>人</div></div></div></div><div id="postsContainer" class="card"></div><div class="card">${replyFormHtml}</div>`;
+      document.getElementById('app').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;"><div>${deleteButtonHtml}<h2 style="word-break:break-all;">${escapeHTML(t.title)}</h2><div class="meta">スレ主: <b class="post-author" onclick="window.showUserProfile('${escapeHTML(t.op.name).replace(/'/g, "\\'")}', '${t.op.id}')">${escapeHTML(t.op.name)}</b> ${o?'<span class="badge-op">あなた</span>':''}</div></div><div class="small-muted" style="text-align:right;flex-shrink:0;"><div>${new Date(t.createdAt).toLocaleString()}</div><div style="margin-top:4px;">閲覧中: <span id="viewer-count">...</span>人</div></div></div></div><div id="postsContainer" class="card"></div><div class="card">${replyFormHtml}</div>`;
       const c=document.getElementById('postsContainer');c.innerHTML='';p.forEach(p=>{const b=t.banned&&t.banned[p.author.id],d=document.createElement('div');d.className='post';const l=p.likers||{},k=Object.keys(l).length,h=l[u.id];
-        d.innerHTML=`<div class="meta"><span class="no" onclick="window.quote(${p.id})">No.${p.id}</span><b class="post-author" onclick="window.showUserProfile('${escapeHTML(p.author.name).replace(/'/g, "\\'")}', '${p.author.id}')">${escapeHTML(p.author.name)}</b>${p.author.id===t.op.id?'<span class="badge-op">スレ主</span>':''}<span class="small-muted" style="margin-left:auto">${new Date(p.createdAt).toLocaleString()}</span></div>${b?`<div class="banned-note">このユーザーはアク禁されています</div>`:`<div class="body">${renderContent(p.text)}</div>${p.img?`<img src="${p.img}" onclick="this.style.maxWidth=this.style.maxWidth==='100%'?'280px':'100%'">`:''}<div class="controls"><button class="btn small" onclick="window.quote(${p.id})">レス</button><button class="btn small ${h?'liked':''}" onclick="window.like('${id}',${p.id})">${h?'❤️':'👍'} ${k}</button>${p.author.id===u.id?`<button class="btn small" onclick="window.editPost('${id}',${p.id})">編集</button>`:''}${o&&p.author.id!==t.op.id?`<button class="btn small warn" onclick="window.toggleBan('${id}','${p.author.id}','${escapeHTML(p.author.name).replace(/'/g, "\\'")}')">${b?'解除':'アク禁'}</button>`:''}</div>`}`;c.appendChild(d);});
+        d.innerHTML=`<div class="meta"><span class="no" onclick="window.quote(${p.id})">No.${p.id}</span><b class="post-author" onclick="window.showUserProfile('${escapeHTML(p.author.name).replace(/'/g, "\\'")}', '${p.author.id}')">${escapeHTML(p.author.name)}</b> (ID: ${p.author.id}) ${p.author.id===t.op.id?'<span class="badge-op">スレ主</span>':''}<span class="small-muted" style="margin-left:auto">${new Date(p.createdAt).toLocaleString()}</span></div>${b?`<div class="banned-note">このユーザーはアク禁されています</div>`:`<div class="body">${renderContent(p.text)}</div>${p.img?`<img src="${p.img}" onclick="this.style.maxWidth=this.style.maxWidth==='100%'?'280px':'100%'">`:''}<div class="controls"><button class="btn small" onclick="window.quote(${p.id})">レス</button><button class="btn small ${h?'liked':''}" onclick="window.like('${id}',${p.id})">${h?'❤️':'👍'} ${k}</button>${p.author.id===u.id?`<button class="btn small" onclick="window.editPost('${id}',${p.id})">編集</button>`:''}${o&&p.author.id!==t.op.id?`<button class="btn small warn" onclick="window.toggleBan('${id}','${p.author.id}','${escapeHTML(p.author.name).replace(/'/g, "\\'")}')">${b?'解除':'アク禁'}</button>`:''}</div>`}`;c.appendChild(d);});
       c.querySelectorAll('a[data-link]').forEach(a=>{a.onclick=e=>{e.preventDefault();document.getElementById(`post-${a.dataset.link}`).scrollIntoView({behavior:'smooth',block:'center'});};});
       if(postCount<POST_LIMIT){document.getElementById('replyBtn').onclick=()=>postReply(id);}
     }, e=>{document.getElementById('app').innerHTML=`<div class="card banned-note">エラー:スレッドを読み込めませんでした。</div>`;console.error(e);});
     activeDataListener={ref,callback:cb};const vRef=db.ref('viewers/'+id);myConnectionRef=vRef.push(true);myConnectionRef.onDisconnect().remove();const vCb=vRef.on('value',s=>{const e=document.getElementById('viewer-count');if(e)e.textContent=s.numChildren();});activeViewersListener={ref:vRef,callback:vCb};
   }
 
-  async function postReply(id) {
-    const b=document.getElementById('replyBtn'); b.disabled=true;
-    try {
-      const snapshot = await db.ref(`threads/${id}/posts`).once('value');
-      const currentPosts = snapshot.val() || {};
-      if (Object.keys(currentPosts).length >= POST_LIMIT) { throw new Error(`このスレッドは${POST_LIMIT}レスの上限に達しました。`); }
-      if(document.getElementById('replyName').value.trim()) setUserName(document.getElementById('replyName').value.trim());
-      const t=document.getElementById('replyText').value.trim(),f=document.getElementById('replyImage').files[0];
-      if(!t)throw new Error('本文は必須です');
-      const u=getUser(),n=(await db.ref(`threads/${id}/banned/${u.id}`).once('value')).val();
-      if(n)throw new Error('あなたはこのスレッドでアク禁されています。');
-      const i=f?await readFileAsDataURL(f):null;
-      await db.ref('threads/'+id).transaction(d=>{if(d){const e=(d.postCounter||0)+1;d.posts=d.posts||{};d.posts[e]={id:e,author:u,text:t,img:i,createdAt:Date.now()};d.postCounter=e;}return d;});
-      document.getElementById('replyText').value='';document.getElementById('replyImage').value='';
-    } catch(e){alert('投稿エラー: '+e.message);} finally{b.disabled=false;}
-  }
-
+  async function postReply(id) { /* (Unchanged) */ }
   function readFileAsDataURL(f){if(!f.type.startsWith('image/'))throw new Error('画像ファイルを選択してください');if(f.size>MAX_IMAGE_BYTES)throw new Error(`画像サイズは${MAX_IMAGE_BYTES/1024/1024}MB以下にしてください`);return new Promise((s,j)=>{const r=new FileReader();r.onload=()=>s(r.result);r.onerror=j;r.readAsDataURL(f);});}
 
   window.quote=(n)=>{const e=document.getElementById('replyText');if(e){e.value+=`>>${n} `;e.focus();}};
   window.like=(t,p)=>{const r=db.ref(`threads/${t}/posts/${p}/likers`),u=getUser().id;r.transaction(c=>{if(c&&c[u]){c[u]=null;}else{if(!c)c={};c[u]=true;}return c;});};
   window.toggleBan=(t,a,n)=>{const r=db.ref(`threads/${t}/banned/${a}`);r.once('value',s=>{if(s.exists()){if(confirm(`${n}のアク禁を解除しますか？`))r.remove();}else{if(confirm(`${n}をアク禁にしますか？`))r.set(true);}});};
   window.editPost=async(t,p)=>{const r=db.ref(`threads/${t}/posts/${p}`),o=(await r.once('value')).val();if(o.author.id!==getUser().id)return alert('自分の投稿しか編集できません');const n=prompt('編集内容を入力',o.text);if(n!==null)r.update({text:n});};
-  
-  // ▼▼▼ スレ削除機能: 新しい関数 ▼▼▼
-  window.deleteThread = (threadId) => {
-    if (confirm('本当にこのスレッドを削除しますか？\nこの操作は元に戻すことができません。')) {
-      db.ref('threads/' + threadId).remove()
-        .then(() => {
-          alert('スレッドを削除しました。');
-          goHome();
-        })
-        .catch((error) => {
-          console.error("スレッド削除エラー: ", error);
-          alert('スレッドの削除に失敗しました。');
-        });
-    }
-  };
+  window.deleteThread = (threadId) => { if (confirm('本当にこのスレッドを削除しますか？\nこの操作は元に戻すことができません。')) { db.ref('threads/' + threadId).remove().then(()=>{alert('スレッドを削除しました。');goHome();}).catch((e)=>{alert('スレッドの削除に失敗しました。');});}};
 
-  window.showUserProfile = async (name, id) => {
-    const modal = document.getElementById('profileModal');
-    const nameEl = document.getElementById('profileName');
-    const idEl = document.getElementById('profileId');
-    const postsListEl = document.getElementById('profilePostsList');
-    
-    nameEl.textContent = name;
-    idEl.textContent = `ID: ${id}`;
-    postsListEl.innerHTML = '投稿を読み込み中...';
-    modal.style.display = 'flex';
-
-    try {
-      const snapshot = await db.ref('threads').once('value');
-      const allThreads = snapshot.val() || {};
-      const userPosts = [];
-      for (const threadId in allThreads) {
-        const thread = allThreads[threadId];
-        if (thread.posts) {
-          for (const postId in thread.posts) {
-            const post = thread.posts[postId];
-            if (post.author && post.author.id === id) {
-              userPosts.push({ thread, post });
-            }
-          }
-        }
-      }
-      
-      if (userPosts.length === 0) {
-        postsListEl.innerHTML = '<div class="small-muted">このユーザーの投稿はありません。</div>';
-      } else {
-        postsListEl.innerHTML = userPosts.sort((a,b) => b.post.createdAt - a.post.createdAt).map(item => `
-          <div class="profile-post-item">
-            <div class="title">スレ: ${escapeHTML(item.thread.title)}</div>
-            <div class="body">${renderContent(item.post.text.substring(0, 100))}${item.post.text.length > 100 ? '...' : ''}</div>
-            <button class="btn small" onclick="window.goToPost('${item.thread.id}', ${item.post.id})">投稿に飛ぶ</button>
-          </div>
-        `).join('');
-      }
-    } catch (e) {
-      postsListEl.innerHTML = '<div class="banned-note">投稿の読み込みに失敗しました。</div>';
-      console.error(e);
-    }
-  };
+  window.showUserProfile = async (name, id) => { /* (Unchanged) */ };
   window.closeUserProfile = () => { document.getElementById('profileModal').style.display = 'none'; };
-  window.goToPost = (threadId, postId) => {
-    window.closeUserProfile();
-    location.hash = 'thread-' + threadId;
-    setTimeout(() => {
-      const postEl = document.getElementById(`post-${postId}`);
-      if (postEl) {
-        postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        postEl.style.transition = 'background-color 0.5s';
-        postEl.style.backgroundColor = 'rgba(21, 101, 192, 0.1)';
-        setTimeout(() => { postEl.style.backgroundColor = ''; }, 2000);
-      }
-    }, 500);
-  };
+  window.goToPost = (threadId, postId) => { /* (Unchanged) */ };
   
   function renderApp(){
     cleanupListeners(); refreshHeader(); const h=location.hash||'#';
@@ -304,10 +217,17 @@ function main() {
   document.getElementById('historyBtn').onclick = () => location.hash = 'history';
   document.getElementById('refreshBtn').onclick = () => location.reload();
   document.getElementById('changeNameBtn').onclick = () => { const n = prompt('新しい表示名を入力', getUser().name); if(n !== null && n.trim() !== '') setUserName(n.trim()); };
-  
   document.getElementById('closeProfileBtn').onclick = window.closeUserProfile;
   document.getElementById('profileModal').onclick = (e) => { if (e.target === e.currentTarget) window.closeUserProfile(); };
 
+  renderApp();
+
+  // Self-correction for functions that were marked as unchanged to keep the snippet size reasonable
+  // but are needed for the code to be complete.
+  renderHistoryPage = function() { const history = loadHistory(); let content = '<h2>📜 閲覧履歴</h2>'; if (history.length === 0) { content += '<div class="small-muted">まだ閲覧履歴がありません。</div>'; } else { history.forEach(item => { content += `<div class="history-item"><a class="thread-link" href="#thread-${item.id}">${escapeHTML(item.title)}</a><span class="small-muted">${new Date(item.visitedAt).toLocaleString()}</span></div>`; }); } document.getElementById('app').innerHTML = `<div class="card">${content}</div>`; };
+  postReply = async function(id) { const b=document.getElementById('replyBtn'); b.disabled=true; try { const snapshot = await db.ref(`threads/${id}/posts`).once('value'); const currentPosts = snapshot.val() || {}; if (Object.keys(currentPosts).length >= POST_LIMIT) { throw new Error(`このスレッドは${POST_LIMIT}レスの上限に達しました。`); } if(document.getElementById('replyName').value.trim()) setUserName(document.getElementById('replyName').value.trim()); const t=document.getElementById('replyText').value.trim(),f=document.getElementById('replyImage').files[0]; if(!t)throw new Error('本文は必須です'); const u=getUser(),n=(await db.ref(`threads/${id}/banned/${u.id}`).once('value')).val(); if(n)throw new Error('あなたはこのスレッドでアク禁されています。'); const i=f?await readFileAsDataURL(f):null; await db.ref('threads/'+id).transaction(d=>{if(d){const e=(d.postCounter||0)+1;d.posts=d.posts||{};d.posts[e]={id:e,author:u,text:t,img:i,createdAt:Date.now()};d.postCounter=e;}return d;}); document.getElementById('replyText').value='';document.getElementById('replyImage').value=''; } catch(e){alert('投稿エラー: '+e.message);} finally{b.disabled=false;} };
+  window.showUserProfile = async function(name, id) { const modal = document.getElementById('profileModal'); const nameEl = document.getElementById('profileName'); const idEl = document.getElementById('profileId'); const postsListEl = document.getElementById('profilePostsList'); nameEl.textContent = name; idEl.textContent = `ID: ${id}`; postsListEl.innerHTML = '投稿を読み込み中...'; modal.style.display = 'flex'; try { const snapshot = await db.ref('threads').once('value'); const allThreads = snapshot.val() || {}; const userPosts = []; for (const threadId in allThreads) { const thread = allThreads[threadId]; if (thread.posts) { for (const postId in thread.posts) { const post = thread.posts[postId]; if (post.author && post.author.id === id) { userPosts.push({ thread, post }); } } } } if (userPosts.length === 0) { postsListEl.innerHTML = '<div class="small-muted">このユーザーの投稿はありません。</div>'; } else { postsListEl.innerHTML = userPosts.sort((a,b) => b.post.createdAt - a.post.createdAt).map(item => `<div class="profile-post-item"><div class="title">スレ: ${escapeHTML(item.thread.title)}</div><div class="body">${renderContent(item.post.text.substring(0, 100))}${item.post.text.length > 100 ? '...' : ''}</div><button class="btn small" onclick="window.goToPost('${item.thread.id}', ${item.post.id})">投稿に飛ぶ</button></div>`).join(''); } } catch (e) { postsListEl.innerHTML = '<div class="banned-note">投稿の読み込みに失敗しました。</div>'; console.error(e); } };
+  window.goToPost = function(threadId, postId) { window.closeUserProfile(); location.hash = 'thread-' + threadId; setTimeout(() => { const postEl = document.getElementById(`post-${postId}`); if (postEl) { postEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); postEl.style.transition = 'background-color 0.5s'; postEl.style.backgroundColor = 'rgba(21, 101, 192, 0.1)'; setTimeout(() => { postEl.style.backgroundColor = ''; }, 2000); } }, 500); };
   renderApp();
 }
 </script>
