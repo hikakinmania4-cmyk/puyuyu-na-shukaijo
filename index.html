@@ -174,12 +174,18 @@ function main() {
     const ref = db.ref('threads/'+id);
     const cb = ref.on('value', s => {
       if(!document.getElementById('app')) return;
-      const t=s.val(); if(!t){document.getElementById('app').innerHTML=`<div class="card">スレが見つかりません。</div>`;return;}
+      const t=s.val(); if(!t){goHome(); return;} // スレ削除後にホームへ
       addToHistory(t.id, t.title);
       const u=getUser(),o=t.op&&t.op.id===u.id,p=Object.values(t.posts||{}).sort((a,b)=>a.id-b.id);
       const postCount = p.length;
       let replyFormHtml = (postCount>=POST_LIMIT)?`<div class="banned-note" style="text-align:center;padding:10px;">このスレッドは${POST_LIMIT}レスに達しました。</div>`:`<h4>レス投稿</h4><input id="replyName" type="text" placeholder="名前" value="${escapeHTML(u.name)}" style="margin-bottom:8px;"><textarea id="replyText" placeholder="本文"></textarea><div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;"><input id="replyImage" type="file" accept="image/*"><button class="btn" id="replyBtn">投稿</button></div>`;
-      document.getElementById('app').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;"><div><h2 style="word-break:break-all;">${escapeHTML(t.title)}</h2>
+      
+      // ▼▼▼ スレ削除機能: ボタンのHTMLを定義 ▼▼▼
+      const deleteButtonHtml = o ? `<button class="btn small warn" style="margin-bottom:8px;" onclick="window.deleteThread('${id}')">スレを削除</button>` : '';
+
+      document.getElementById('app').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;"><div>
+        ${deleteButtonHtml}
+        <h2 style="word-break:break-all;">${escapeHTML(t.title)}</h2>
         <div class="meta">スレ主: <b class="post-author" onclick="window.showUserProfile('${escapeHTML(t.op.name).replace(/'/g, "\\'")}', '${t.op.id}')">${escapeHTML(t.op.name)}</b> ${o?'<span class="badge-op">あなた</span>':''}</div>
         </div><div class="small-muted" style="text-align:right;flex-shrink:0;"><div>${new Date(t.createdAt).toLocaleString()}</div><div style="margin-top:4px;">閲覧中: <span id="viewer-count">...</span>人</div></div></div></div><div id="postsContainer" class="card"></div><div class="card">${replyFormHtml}</div>`;
       const c=document.getElementById('postsContainer');c.innerHTML='';p.forEach(p=>{const b=t.banned&&t.banned[p.author.id],d=document.createElement('div');d.className='post';const l=p.likers||{},k=Object.keys(l).length,h=l[u.id];
@@ -214,6 +220,21 @@ function main() {
   window.toggleBan=(t,a,n)=>{const r=db.ref(`threads/${t}/banned/${a}`);r.once('value',s=>{if(s.exists()){if(confirm(`${n}のアク禁を解除しますか？`))r.remove();}else{if(confirm(`${n}をアク禁にしますか？`))r.set(true);}});};
   window.editPost=async(t,p)=>{const r=db.ref(`threads/${t}/posts/${p}`),o=(await r.once('value')).val();if(o.author.id!==getUser().id)return alert('自分の投稿しか編集できません');const n=prompt('編集内容を入力',o.text);if(n!==null)r.update({text:n});};
   
+  // ▼▼▼ スレ削除機能: 新しい関数 ▼▼▼
+  window.deleteThread = (threadId) => {
+    if (confirm('本当にこのスレッドを削除しますか？\nこの操作は元に戻すことができません。')) {
+      db.ref('threads/' + threadId).remove()
+        .then(() => {
+          alert('スレッドを削除しました。');
+          goHome();
+        })
+        .catch((error) => {
+          console.error("スレッド削除エラー: ", error);
+          alert('スレッドの削除に失敗しました。');
+        });
+    }
+  };
+
   window.showUserProfile = async (name, id) => {
     const modal = document.getElementById('profileModal');
     const nameEl = document.getElementById('profileName');
