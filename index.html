@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+
+<!-- サイトの基本情報 -->
+<title>🥺ぷゆゆな集会場🥺 - ぷゆゆ好きのための匿名掲示板</title>
+<meta name="description" content="ぷゆゆ好き🥺🫶が集まるぷゆゆ🥺のための掲示板" />
+<meta name="keywords" content="掲示板,匿名,雑談,趣味,ぷゆゆ" />
+
+<!-- OGPタグ (SNSなどで共有されたときの表示) -->
+<meta property="og:title" content="🥺ぷゆゆな集会場🥺" />
+<meta property="og:description" content="ぷゆゆ好き🥺🫶が集まるぷゆゆ🥺のための掲示板" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://hikakinmania4-cmyk.github.io/puyuyu-na-shukaijo/" />
+<meta property="og:image" content="https://i.ibb.co/93Stdh8x/96a86591b41f.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+
+<!-- その他のメタタグ -->
+<meta name="author" content="puyuyu" />
+<meta name="theme-color" content="#1565c0" />
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<style>
+  :root{--primary:#1565c0;--accent:#0288d1;--bg:#f5f7fb;--card:#ffffff;--muted:#6b7280;--danger:#ef4444;--text-main:#111827;--text-muted:#6b7280;--border-color:#e5e7eb;}
+  .dark-mode{--primary:#60a5fa;--accent:#38bdf8;--bg:#111827;--card:#1f2937;--muted:#9ca3af;--text-main:#f9fafb;--text-muted:#9ca3af;--border-color:#374151;}
+  *{box-sizing:border-box}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;background:var(--bg);margin:0;padding:0;color:var(--text-main);transition:background-color .3s,color .3s;}
+  header{background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  header h1{margin:0;font-size:18px;flex-grow:1;word-break:break-all;}
+  header .controls{display:flex;gap:8px;align-items:center;}
+  header .userbox{font-size:13px; margin-left: auto; text-align:right;}
+  header button{background:rgba(255,255,255,0.14);border:none;color:#fff;padding:6px 10px;border-radius:6px;cursor:pointer; display: inline-flex; align-items: center; gap: 6px;}
+  header button:hover{background:rgba(255,255,255,0.22)}
+  .wrap{max-width:1000px;margin:16px auto;padding:12px}
+  .card{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 2px 6px rgba(2,6,23,0.06);margin-bottom:12px;border:1px solid var(--border-color); transition: background-color .3s, border-color .3s;}
+  .card h2{margin:0 0 8px 0;font-size:16px;color:var(--primary);word-break:break-all;}
+  .thread-header{display:flex;flex-wrap:nowrap;justify-content:space-between;align-items:flex-start;gap:16px;}
+  .thread-header-main{min-width:0;flex-grow:1;}
+  .thread-header-meta{text-align:right;flex-shrink:0;}
+  input[type="text"],textarea,select{width:100%;padding:8px;border:1px solid var(--border-color);border-radius:8px;font-size:14px;background:var(--card);color:var(--text-main);}
+  textarea{min-height:80px;resize:vertical}
+  .btn{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;transition:background-color 0.2s;}
+  .btn:disabled{background:var(--muted);cursor:not-allowed;}
+  .btn.warn{background:var(--danger)}
+  .btn.small{padding:6px 8px;font-size:13px;border-radius:6px}
+  .btn.liked{background:#e11d48;color:white;}
+  .search-box{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+  .sort-box{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap; align-items: center;}
+  .thread-item, .history-item{padding:10px;border-radius:8px;border:1px solid var(--border-color);display:flex;flex-wrap:nowrap;align-items:center;gap:12px; margin-bottom: 8px;}
+  .thread-link{font-weight:600;color:var(--primary);text-decoration:none; display:block;word-break:break-all;}
+  .thread-info{flex-grow:1; display:flex; flex-direction:column; gap: 4px; min-width:0; align-items:flex-start;}
+  .history-item .thread-info {flex-direction:row; align-items:center; gap: 8px;}
+  .thread-tags{display:flex;flex-wrap:wrap;gap:4px;}
+  .tag{background:var(--muted);color:var(--text-main);padding:2px 6px;border-radius:4px;font-size:11px;cursor:pointer; text-decoration: none;}
+  .thread-title-wrapper{min-width:0;display:flex;align-items:center;gap:8px;}
+  .thread-meta-info{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;text-align:right;}
+  .thread-preview-img{width:60px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0;}
+  .meta{font-size:13px;color:var(--text-muted)}
+  .post{padding:10px;border-top:1px solid var(--border-color);margin-top:8px;}
+  #postsContainer > .post:first-child{margin-top:0;}
+  .modal-body .post {border-top:none; border-bottom:1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 10px;}
+  .modal-body .post:last-child {border-bottom:none; margin-bottom:0;}
+  .post .meta{font-size:12px;color:var(--text-muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap; margin-bottom: 8px;}
+  .post .meta .no{color:var(--accent);cursor:pointer;font-weight:700}
+  .post .meta .post-author{font-weight:bold;cursor:pointer; color: var(--text-main);}
+  .post .body{white-space:pre-wrap;word-break:break-word}
+  .post .body a{color:var(--primary);}
+  .post-image{max-width:280px;height:auto;border-radius:6px;margin-top:8px;display:block;cursor:pointer}
+  .highlight{background-color: yellow; color: black;}
+  .controls{margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+  .timestamp{margin-left:auto; white-space:nowrap;}
+  .badge-op, .badge-level{background:var(--primary);color:white;padding:3px 6px;border-radius:999px;font-size:12px; white-space:nowrap;}
+  .badge-new, .badge-anchor{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:999px;background:var(--danger);color:white;font-size:11px;font-weight:bold;padding:0 5px;}
+  .badge-anchor{cursor:pointer;}
+  .banned-note, .deleted-note, .ng-hidden-post{color:var(--danger);font-weight:700;margin-top:8px;}
+  .ng-word-red{color:var(--danger);font-weight:bold;}
+  .thread-link.ng-word-red { color: var(--danger); }
+  .small-muted{font-size:12px;color:var(--text-muted)}
+  .modal-overlay,.lightbox-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:1000;}
+  .modal-content{background:var(--bg);border-radius:10px;width:90%;max-width:600px;max-height:80%;display:flex;flex-direction:column;border:1px solid var(--border-color);}
+  .modal-header{padding:12px 16px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center;}
+  .modal-header h2{font-size:18px;color:var(--primary);margin:0;}
+  .modal-close-btn,.lightbox-close-btn{font-size:28px;background:none;border:none;cursor:pointer;color:white;position:absolute;top:10px;right:15px;}
+  .modal-close-btn{color:var(--text-muted);position:static;}
+  .modal-body{padding:16px;overflow-y:auto;}
+  #profileId{color:var(--text-muted);font-size:13px;margin:0 0 12px 0;word-break:break-all;}
+  #profileControls{margin-bottom:12px; border-top:1px solid var(--border-color); padding-top:12px; display:flex; gap:8px;}
+  .lightbox-content img{max-width:90vw;max-height:90vh;display:block;}
+  .vote-box{margin-top:10px; display:flex; flex-direction:column; gap: 5px;}
+  .vote-option-bar-container{display: flex; align-items: center; gap: 8px; padding: 4px; border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; transition: background-color .2s;}
+  .vote-option-bar-container:hover{background-color: rgba(128,128,128,0.1);}
+  .vote-option-bar-container.voted-by-user{border-color: var(--primary); background-color: rgba(21,101,192,0.08);}
+  .vote-label{flex-shrink: 0; font-size: 14px;}
+  .vote-bar-wrapper{flex-grow: 1; background-color: var(--border-color); border-radius: 4px; height: 20px; overflow: hidden;}
+  .vote-option-bar{background-color: var(--accent); height: 100%; transition: width .3s ease-out;}
+  .vote-result{font-size: 13px; font-weight: bold; min-width: 60px; text-align: right;}
+  .pagination-controls{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:16px;}
+  @media(max-width:680px){header{justify-content:center;}header .userbox{width:100%;text-align:center;margin:4px 0;}}
+</style>
+</head>
+<body>
+  <header>
+    <h1>🥺ぷゆゆな集会場🥺</h1>
+    <div class="userbox"><span id="userDisplay"></span></div>
+    <div class="controls">
+      <button id="homeBtn">🏠 ホーム</button>
+      <button id="historyBtn">📜 履歴<span id="totalUnreadBadge" class="badge-new" style="display:none;"></span></button>
+      <button id="settingsBtn">⚙️ 設定</button>
+      <button id="themeToggleBtn">🌙</button>
+      <button id="refreshBtn">🔄 更新</button>
+    </div>
+  </header>
+  <div class="wrap" id="app"></div>
+  <div id="profileModal" class="modal-overlay"><div class="modal-content"><div class="modal-header"><h2 id="profileName"></h2><button id="closeProfileBtn" class="modal-close-btn">&times;</button></div><div class="modal-body"><p id="profileId"></p><div id="profileControls"></div><h3>この人の投稿</h3><div id="profilePostsList"></div></div></div></div>
+  <div id="imageLightbox" class="lightbox-overlay"><div class="lightbox-content"><img id="lightboxImage" src=""><button id="lightboxClose" class="lightbox-close-btn">&times;</button></div></div>
+  <div id="voteModal" class="modal-overlay"><div class="modal-content"><div class="modal-header"><h2>アンケート作成</h2><button id="closeVoteModalBtn" class="modal-close-btn">&times;</button></div><div class="modal-body"><h4>選択肢</h4><div id="voteOptionsContainer"><input type="text" class="vote-option-input" placeholder="選択肢1" style="margin-bottom:8px;"><input type="text" class="vote-option-input" placeholder="選択肢2" style="margin-bottom:8px;"></div><button id="addVoteOptionBtn" class="btn small">選択肢を追加</button><div style="text-align:right; margin-top:16px;"><button id="insertVoteBtn" class="btn">本文に挿入</button></div></div></div></div>
+  <div id="anchorModal" class="modal-overlay"><div class="modal-content"><div class="modal-header"><h2>この投稿への返信</h2><button id="closeAnchorModalBtn" class="modal-close-btn">&times;</button></div><div class="modal-body" id="anchorModalBody"></div></div></div>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDS3Tlr9Oc4z5Kz2Zg72p9VRayPSAbmwTw",
+  authDomain: "config-f5509.firebaseapp.com",
+  databaseURL: "https://config-f5509-default-rtdb.firebaseio.com",
+  projectId: "config-f5509",
+  storageBucket: "config-f5509.appspot.com",
+  messagingSenderId: "513023904601",
+  appId: "1:513023904601:web:1846aa87aec5de306e1a48",
+  measurementId: "G-KT2LZC2EED"
+};
+const NG_WORDS = ['바보', '멍청이', '죽어', '死ね', 'バカ', '馬鹿', 'kill', 'idiot'];
+const ADMIN_IDS = ['W4ZZKXRY9CS'];
+document.addEventListener('DOMContentLoaded', () => { main(); });
+
+function main() {
+  if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
+    document.getElementById('app').innerHTML = `<div class="card"><h2>🚨 設定が必要です！</h2><p>HTMLファイル内の <code>firebaseConfig</code> が未設定です。</p></div>`; return;
+  }
+  try { firebase.initializeApp(firebaseConfig); } catch (e) { alert("Firebaseの初期化に失敗しました。"); return; }
+  const db = firebase.database();
+
+  let globalBanList = {};
+  let myTotalExp = 0;
+
+  const banRef = db.ref('globalBan');
+  banRef.on('value', (snapshot) => {
+      globalBanList = snapshot.val() || {};
+      
+      const currentThreadId = location.hash.startsWith('#thread-') ? location.hash.replace('#thread-','') : null;
+      
+      if (currentThreadId && document.getElementById('postsContainer')) {
+          Promise.all([
+              db.ref('threads/' + currentThreadId).once('value'),
+              db.ref('userLevels').once('value')
+          ]).then(([threadSnapshot, userLevelsSnapshot]) => {
+              const threadData = threadSnapshot.val();
+              const userLevels = userLevelsSnapshot.val() || {};
+              if (threadData) {
+                  updateThreadView(currentThreadId, threadData, userLevels, globalBanList);
+              }
+          });
+      }
+  });
+
+  let activeDataListener = null, activeViewersListener = null, myConnectionRef = null, allThreads = [], currentViewers = 0, currentPage = 1;
+  const THREADS_PER_PAGE = 15;
+
+  function cleanupListeners() {
+    if(activeDataListener){ activeDataListener.ref.off('value', activeDataListener.callback); activeDataListener = null; }
+    if(activeViewersListener){ activeViewersListener.ref.off('value', activeViewersListener.callback); activeViewersListener = null; }
+    if(myConnectionRef){ myConnectionRef.remove(); myConnectionRef = null; }
+  }
+  const PERMANENT_ID_COOKIE = 'puyuyun_permanent_id_v2';
+  const DAILY_ID_COOKIE = 'puyuyun_daily_id_v2';
+  const USERNAME_COOKIE = 'puyuyun_username_v1';
+  const LAST_POST_TIME_KEY = 'puyuyun_last_post_time';
+  const POST_INTERVAL_SECONDS = 10;
+  const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+  const POST_LIMIT = 1000;
+  const TITLE_LIMIT = 25;
+  const NAME_LIMIT = 11;
+  const TEXT_LIMIT = 1000;
+  const MAX_NEWLINES = 15;
+  const MAX_CONSECUTIVE_NEWLINES = 2;
+  const VOTE_OPTION_LIMIT = 15;
+  const HISTORY_KEY = 'puyuyun_history_v1';
+  const THEME_KEY = 'puyuyun_theme';
+  const NAME_HISTORY_KEY = 'puyuyun_name_history_v1';
+  const NG_SETTINGS_KEY = 'puyuyun_ng_settings_v1';
+  const NEXT_THREAD_DATA_KEY = 'puyuyun_next_thread_data';
+  //【安価通知機能修正】localStorageのキーを新しいものに変更
+  const ANCHOR_STATUS_KEY = 'puyuyun_anchor_status_v2';
+  const DAILY_ACTIVITY_KEY = 'puyuyun_daily_activity_v1';
+  
+  const TITLE_THRESHOLDS = {
+    1000: 'ぷゆゆの神',
+    60: 'ぷゆゆ本人',
+    30: 'ぷゆゆな常連',
+    10: 'ぷゆゆな初心者',
+    0: 'ぷゆゆなキッズ'
+  };
+
+  const REACTION_PAIRS = { '🥺': '🥹', '😎': '🤓', '😅': '😓' };
+  const BASE_REACTIONS = Object.keys(REACTION_PAIRS);
+  
+  function loadNameHistory() { try { return JSON.parse(localStorage.getItem(NAME_HISTORY_KEY)) || []; } catch(e) { return []; } }
+  function saveNameHistory(history) { localStorage.setItem(NAME_HISTORY_KEY, JSON.stringify(history)); }
+  function loadNgSettings() { try { return JSON.parse(localStorage.getItem(NG_SETTINGS_KEY)) || {}; } catch(e) { return {}; } }
+  function saveNgSettings(settings) { localStorage.setItem(NG_SETTINGS_KEY, JSON.stringify(settings)); }
+  //【安価通知機能修正】データ構造の変更に対応
+  function loadAnchorStatus() { try { return JSON.parse(localStorage.getItem(ANCHOR_STATUS_KEY)) || {}; } catch(e) { return {}; } }
+  function saveAnchorStatus(status) { localStorage.setItem(ANCHOR_STATUS_KEY, JSON.stringify(status)); }
+  function loadDailyActivity() { try { return JSON.parse(localStorage.getItem(DAILY_ACTIVITY_KEY)) || { date: '', postCount: 0, lastBonusDate: '' }; } catch(e) { return { date: '', postCount: 0, lastBonusDate: '' }; } }
+  function saveDailyActivity(activity) { localStorage.setItem(DAILY_ACTIVITY_KEY, JSON.stringify(activity)); }
+
+  function uid(l=10){return Math.random().toString(36).slice(2,2+l).toUpperCase();}
+  function setCookie(n,v,d=365){const e=new Date();e.setTime(e.getTime()+(d*24*60*60*1000));document.cookie=`${n}=${encodeURIComponent(v)};expires=${e.toUTCString()};path=/;SameSite=Lax;Secure`;}
+  function getCookie(n){const kv=document.cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith(n+'='));return kv?decodeURIComponent(kv.split('=')[1]):null;}
+  function escapeHTML(s){if(s==null)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
+  function formatTimestamp(ts) {
+    const d = new Date(ts);
+    const M = (d.getMonth() + 1).toString().padStart(2, '0');
+    const D = d.getDate().toString().padStart(2, '0');
+    const h = d.getHours().toString().padStart(2, '0');
+    const m = d.getMinutes().toString().padStart(2, '0');
+    return `${M}/${D} ${h}:${m}`;
+  }
+  function getJstDateString(date = new Date()) {
+    const jstOffset = 9 * 60;
+    const localOffset = -date.getTimezoneOffset();
+    const jstNow = new Date(date.getTime() + (jstOffset - localOffset) * 60 * 1000);
+    return jstNow.toISOString().slice(0, 10);
+  }
+  
+  function getMomentumScore(thread) {
+    let score = 0;
+    const now = Date.now();
+    const minutesSinceLastPost = (now - thread.lastUpdatedAt) / (1000 * 60);
+    if (minutesSinceLastPost < 1) score += 50;
+    else if (minutesSinceLastPost < 10) score += 20;
+    else if (minutesSinceLastPost < 60) score += 5;
+
+    const viewers = thread.viewerCount || 0;
+    if (viewers >= 10) score += 40;
+    else if (viewers >= 5) score += 20;
+    else if (viewers >= 3) score += 10;
+    
+    return score;
+  }
+
+  function getMomentumEmoji(thread) {
+    if (thread.tags && thread.tags.includes('レベル上げ')) {
+        return '';
+    }
+    const score = getMomentumScore(thread);
+    if (score >= 70) return '🚀';
+    if (score >= 40) return '🔥🔥🔥';
+    if (score >= 20) return '🔥🔥';
+    if (score >= 1) return '🔥';
+    return '';
+  }
+
+  //【安価リンクUI修正】この関数は元々正しく動作していましたが、要求仕様通りリンクとして機能することを再確認しています。
+  function renderContent(s, post = null) {
+    let escaped = escapeHTML(s);
+    if(escaped.match(/javascript:/i)) return '[XSS Alert]';
+    // 安価(>>数字)を検知してクリック可能な<a>タグに変換します
+    const withAnkas = escaped.replace(/>>(\d+)/g, '<a href="#" data-action="quote" data-num="$1">&gt;&gt;$1</a>');
+    const urlRegex = /(https?:\/\/[^\s<>"'()]+)/g;
+    const withUrls = withAnkas.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+    
+    let voteIndex = 0;
+    const withVotes = withUrls.replace(/\[vote:([^\]]+)\]/g, (match, p1) => {
+        const voteId = post ? `vote-${post.id}-${voteIndex++}` : `vote-preview-${voteIndex++}`;
+        const options = p1.split(',').map(opt => opt.trim());
+        const threadId = location.hash.startsWith('#thread-') ? location.hash.replace('#thread-', '') : null;
+
+        if (!post || !threadId) {
+            return `<div class="vote-box">${options.map(opt => `<button class="btn small" disabled>${escapeHTML(opt)}</button>`).join(' ')}</div>`;
+        }
+        
+        const currentUser = getUser();
+        const votes = post.votes || {};
+        const myVote = votes[currentUser.permanentId];
+        
+        let voteCounts = {};
+        options.forEach(opt => { voteCounts[opt] = 0; });
+        Object.values(votes).forEach(votedOption => {
+            if (voteCounts[votedOption] !== undefined) voteCounts[votedOption]++;
+        });
+        
+        const totalVotes = Object.values(voteCounts).reduce((sum, count) => sum + count, 0);
+
+        const optionsHtml = options.map(opt => {
+            const count = voteCounts[opt] || 0;
+            const percentage = totalVotes > 0 ? (count / totalVotes) * 100 : 0;
+            const isVotedByUser = myVote === opt;
+
+            return `
+                <div class="vote-option-bar-container ${isVotedByUser ? 'voted-by-user' : ''}" data-action="vote" data-thread-id="${threadId}" data-post-id="${post.id}" data-vote-option="${escapeHTML(opt)}">
+                    <span class="vote-label">${escapeHTML(opt)}</span>
+                    <div class="vote-bar-wrapper">
+                        <div class="vote-option-bar" style="width: ${percentage}%;"></div>
+                    </div>
+                    <span class="vote-result">${count}票 (${percentage.toFixed(1)}%)</span>
+                </div>
+            `;
+        }).join('');
+
+        return `<div class="vote-box" id="${voteId}">${optionsHtml}</div>`;
+    });
+    return withVotes.replace(/\n/g, '<br>');
+  }
+  
+  function ensureUser() {
+    let permanentId = getCookie(PERMANENT_ID_COOKIE);
+    if (!permanentId) {
+      const oldId = getCookie('puyuyun_permanent_id_v1');
+      if (oldId) {
+        permanentId = oldId;
+        setCookie(PERMANENT_ID_COOKIE, permanentId, 365 * 10);
+      } else {
+        permanentId = uid(16);
+        setCookie(PERMANENT_ID_COOKIE, permanentId, 365 * 10);
+      }
+    }
+    const todayStr = new Date().toISOString().slice(0, 10);
+    let dailyInfo = {}; try { dailyInfo = JSON.parse(getCookie(DAILY_ID_COOKIE) || '{}'); } catch (e) {}
+    if (dailyInfo.date !== todayStr || !dailyInfo.id) { dailyInfo = { id: uid(8), date: todayStr }; setCookie(DAILY_ID_COOKIE, JSON.stringify(dailyInfo), 1); }
+    let username = getCookie(USERNAME_COOKIE) || '名無し' + Math.floor(Math.random()*900+100);
+    return { permanentId, id: dailyInfo.id, name: username };
+  }
+  
+  function getLevel(exp) {
+    const level = exp + 1;
+    let title = 'ぷゆゆなキッズ';
+    
+    const sortedThresholds = Object.keys(TITLE_THRESHOLDS).sort((a, b) => b - a);
+    
+    for (const threshold of sortedThresholds) {
+      if (exp >= parseInt(threshold)) {
+        title = TITLE_THRESHOLDS[threshold];
+        break;
+      }
+    }
+    return { level: level, title: title };
+  }
+  function setUserName(n){
+      if (n.length > NAME_LIMIT) {
+        alert(`名前は${NAME_LIMIT}文字以内にしてください。`);
+        return false;
+      }
+      setCookie(USERNAME_COOKIE, n, 365);
+      
+      const history = loadNameHistory();
+      history.unshift({ name: n, changedAt: Date.now() });
+      if (history.length > 20) history.pop();
+      saveNameHistory(history);
+
+      refreshHeader();
+      const newNameInput = document.getElementById('newName');
+      if (newNameInput) newNameInput.value = n;
+      const replyNameInput = document.getElementById('replyName');
+      if (replyNameInput) replyNameInput.value = n;
+      return true;
+  }
+  function getUser(){return ensureUser();}
+  function refreshHeader(){document.getElementById('userDisplay').textContent=`あなた: ${getUser().name}`;}
+  function loadHistory(){try{return JSON.parse(localStorage.getItem(HISTORY_KEY))||[];}catch(e){return[];}}
+  function saveHistory(h){localStorage.setItem(HISTORY_KEY,JSON.stringify(h));}
+  function addToHistory(id,title,lastUpdatedAt){let h=loadHistory();h=h.filter(i=>i.id!==id);h.unshift({id,title,lastUpdatedAt,visitedAt:Date.now()});if(h.length>50)h.pop();saveHistory(h);}
+  function removeFromHistory(id){let h=loadHistory();h=h.filter(i=>i.id!==id);saveHistory(h);}
+  function goHome(){location.hash='';}
+
+  //【安価通知機能修正】ヘッダーの履歴ボタンに総未読件数を表示する新関数
+  function updateTotalUnreadBadge() {
+      const badge = document.getElementById('totalUnreadBadge');
+      if (!badge) return;
+      const myId = getUser().permanentId;
+      const allStatus = loadAnchorStatus();
+      const myStatus = allStatus[myId] || {};
+      let totalUnread = 0;
+      // 各スレッドの未読件数を合計
+      Object.values(myStatus).forEach(postIds => {
+          if (Array.isArray(postIds)) totalUnread += postIds.length;
+      });
+
+      if (totalUnread > 0) {
+          badge.textContent = totalUnread;
+          badge.style.display = 'inline-flex';
+      } else {
+          badge.style.display = 'none';
+      }
+  }
+
+  function displayThreads(threadsToDisplay, sortMode = 'newPost', tagFilter = null, isReversed = false, page = 1) {
+    const c = document.getElementById('threadListContainer'); 
+    const p = document.getElementById('paginationContainer');
+    if(!c || !p) return;
+
+    const ngSettings = loadNgSettings();
+    const hideWords = Object.keys(ngSettings).filter(word => ngSettings[word] === 'hide');
+    const redWords = Object.keys(ngSettings).filter(word => ngSettings[word] === 'red');
+
+    let displayableThreads = threadsToDisplay;
+
+    if (sortMode === 'manyRes') {
+        displayableThreads = displayableThreads.filter(t => (t.posts ? Object.keys(t.posts).length : 0) < POST_LIMIT);
+    }
+    
+    if (tagFilter) {
+      displayableThreads = displayableThreads.filter(t => (t.tags || []).includes(tagFilter));
+    }
+    
+    let sortedThreads = [...displayableThreads].sort((a, b) => {
+      if (sortMode === 'newPost') return b.lastUpdatedAt - a.lastUpdatedAt;
+      if (sortMode === 'newThread') return b.createdAt - a.createdAt;
+      if (sortMode === 'manyRes') return (b.posts ? Object.keys(b.posts).length : 0) - (a.posts ? Object.keys(a.posts).length : 0);
+      if (sortMode === 'momentum') {
+        const scoreA = getMomentumScore(a);
+        const scoreB = getMomentumScore(b);
+        return scoreB - scoreA;
+      }
+      return 0;
+    });
+
+    if (isReversed) {
+        sortedThreads.reverse();
+    }
+
+    const threadsAfterNgFilter = sortedThreads.filter(t => {
+        return !hideWords.some(word => t.title.toLowerCase().includes(word.toLowerCase()));
+    });
+    
+    const totalPages = Math.max(1, Math.ceil(threadsAfterNgFilter.length / THREADS_PER_PAGE));
+    currentPage = Math.min(page, totalPages);
+    
+    const startIndex = (currentPage - 1) * THREADS_PER_PAGE;
+    const endIndex = startIndex + THREADS_PER_PAGE;
+    const pagedThreads = threadsAfterNgFilter.slice(startIndex, endIndex);
+
+    if(pagedThreads.length===0){
+      c.innerHTML=`<div class="small-muted">${tagFilter ? `タグ「${escapeHTML(tagFilter)}」が付いたスレッドはありません。` : '該当するスレッドがありません'}</div>`;
+      p.innerHTML = '';
+    } else {
+      c.innerHTML='';
+      pagedThreads.forEach(t=>{
+        const postCount = t.posts ? Object.keys(t.posts).length : 0;
+        const momentumEmoji = getMomentumEmoji(t);
+        const firstPost = (t.posts && postCount > 0) ? Object.values(t.posts).sort((a,b)=>a.createdAt-b.createdAt)[0] : null;
+        const imgHtml = firstPost && firstPost.img ? `<img src="${firstPost.img}" class="thread-preview-img" alt="preview">` : '';
+        const tagsHtml = (t.tags || []).map(tag => `<a href="#" class="tag" data-tag="${escapeHTML(tag)}">${escapeHTML(tag)}</a>`).join('');
+        
+        const titleContainsRedWord = redWords.some(word => t.title.toLowerCase().includes(word.toLowerCase()));
+        const titleClass = titleContainsRedWord ? 'thread-link ng-word-red' : 'thread-link';
+        const displayTitle = escapeHTML(t.title.replace(/#[\p{L}\p{N}_]+/ug, ''));
+        const lockIcon = t.levelRestriction > 0 ? '🔒' : '';
+
+        const i=document.createElement('div');
+        i.className='thread-item';
+        i.innerHTML=`
+          ${imgHtml}
+          <div class="thread-info">
+            <div class="thread-title-wrapper">
+              <a class="${titleClass}" href="#thread-${t.id}">${lockIcon}${displayTitle}</a>
+            </div>
+            <div class="thread-tags">${tagsHtml}</div>
+          </div>
+          <div class="thread-meta-info">
+            <div class="meta">${postCount}レス</div>
+            <div class="meta">${momentumEmoji}</div>
+          </div>`;
+        c.appendChild(i);
+      });
+      document.querySelectorAll('.tag').forEach(tagEl => {
+        tagEl.onclick = (e) => {
+            e.preventDefault();
+            const tag = e.target.dataset.tag;
+            document.getElementById('searchInput').value = `#${tag}`;
+            document.getElementById('searchBtn').click();
+        };
+      });
+
+      p.innerHTML = `
+        <div class="pagination-controls">
+          <button id="prevPageBtn" class="btn small" ${currentPage === 1 ? 'disabled' : ''}>前へ</button>
+          <span class="small-muted">${currentPage} / ${totalPages} ページ</span>
+          <button id="nextPageBtn" class="btn small" ${currentPage === totalPages ? 'disabled' : ''}>次へ</button>
+        </div>
+      `;
+      document.getElementById('prevPageBtn').onclick = () => { if(currentPage > 1) { currentPage--; window.performDisplay(); } };
+      document.getElementById('nextPageBtn').onclick = () => { if(currentPage < totalPages) { currentPage++; window.performDisplay(); } };
+    }
+  }
+  
+  function renderHome() {
+    currentPage = 1; 
+    document.getElementById('app').innerHTML = `<div class="card"><h2>新しいスレッドを作成</h2><input id="newTitle" type="text" placeholder="タイトル（#タグ でタグ付けできます）" style="margin-bottom:8px;"><input id="newName" type="text" placeholder="名前（任意）" value="${escapeHTML(getUser().name)}" style="margin-bottom:8px;"><textarea id="newText" placeholder="本文 (必須)"></textarea><div class="controls" style="justify-content:flex-start; margin-top:8px;"><button id="createVoteBtn" class="btn small">アンケート作成</button></div>
+    <div style="margin-top:8px;"><label for="levelRestrictionSelect" class="small-muted">レベル制限:</label><select id="levelRestrictionSelect"><option value="0">無制限</option><option value="10">Lv.10以上</option><option value="30">Lv.30以上</option><option value="60">Lv.60以上</option><option value="250">Lv.250以上</option><option value="500">Lv.500以上</option><option value="1000">Lv.1000以上</option></select></div>
+    <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;"><input id="newImage" type="file" accept="image/*"><button class="btn" id="createThreadBtn">スレ作成</button></div></div><div class="card"><h2>スレッド一覧</h2><div class="search-box"><input type="text" id="searchInput" placeholder="タイトル検索 or #タグ名"><button id="searchBtn" class="btn small">検索</button><button id="clearSearchBtn" class="btn small">クリア</button></div><div class="sort-box"><span class="small-muted">並び替え:</span><select id="sortSelect"><option value="newPost" selected>新着レス順</option><option value="newThread">スレ立て順</option><option value="manyRes">レス数順</option><option value="momentum">勢い順</option></select><label for="sortReverseCheckbox" class="small-muted" style="display:flex;align-items:center;gap:4px;"><input type="checkbox" id="sortReverseCheckbox">逆順</label></div><div id="threadListContainer">読み込み中...</div><div id="paginationContainer"></div></div>`;
+    
+    const sortSelect = document.getElementById('sortSelect');
+    const searchInput = document.getElementById('searchInput');
+    const reverseCheckbox = document.getElementById('sortReverseCheckbox');
+
+    window.performDisplay = () => {
+        const sortMode = sortSelect.value;
+        const searchTerm = searchInput.value.trim();
+        const isReversed = reverseCheckbox.checked;
+        
+        let threadsForDisplay;
+        if (searchTerm.toLowerCase() === '#レベル上げ') {
+            threadsForDisplay = allThreads;
+        } else {
+            threadsForDisplay = allThreads.filter(t => !(t.tags || []).includes('レベル上げ'));
+        }
+
+        if (searchTerm.startsWith('#')) {
+            const tag = searchTerm.substring(1);
+            const taggedThreads = threadsForDisplay.filter(t => (t.tags || []).includes(tag));
+            displayThreads(taggedThreads, sortMode, tag, isReversed, currentPage);
+        } else {
+            const filtered = searchTerm ? threadsForDisplay.filter(t => t.title.toLowerCase().includes(searchTerm.toLowerCase())) : threadsForDisplay;
+            displayThreads(filtered, sortMode, null, isReversed, currentPage);
+        }
+    }
+
+    performDisplay(); 
+    sortSelect.onchange = () => { currentPage = 1; performDisplay(); };
+    reverseCheckbox.onchange = performDisplay;
+    document.getElementById('searchBtn').onclick = () => { currentPage = 1; performDisplay(); };
+    document.getElementById('clearSearchBtn').onclick=()=>{ searchInput.value=''; currentPage = 1; performDisplay(); };
+    searchInput.onkeydown=(e)=>{if(e.key==='Enter') { currentPage = 1; performDisplay(); }};
+    
+    document.getElementById('createThreadBtn').onclick=async()=>{
+      const b=document.getElementById('createThreadBtn');
+      try{
+        const u=getUser();
+        if (globalBanList[u.permanentId]) {
+          throw new Error('あなたはこの掲示板から追放されています。');
+        }
+
+        const t=document.getElementById('newTitle').value.trim(),n=document.getElementById('newName').value.trim();
+        const rawText = document.getElementById('newText').value;
+        const x = rawText.trim();
+        const levelRestriction = parseInt(document.getElementById('levelRestrictionSelect').value, 10);
+
+        const titleWithoutTags=t.replace(/#[\p{L}\p{N}_]+/ug,'').trim();
+        if(!titleWithoutTags||!x)throw new Error('タイトル本文を入力してください');
+        if(t.length>TITLE_LIMIT)throw new Error(`タイトルは${TITLE_LIMIT}文字以内にしてください。`);
+        if(x.length>TEXT_LIMIT)throw new Error(`本文は${TEXT_LIMIT}文字以内にしてください。`);
+        if((rawText.match(/\n/g) || []).length > MAX_NEWLINES) throw new Error(`改行は${MAX_NEWLINES}回までです。`);
+        if(rawText.match(new RegExp(`\\n{${MAX_CONSECUTIVE_NEWLINES + 1},}`))) throw new Error(`連続した改行は${MAX_CONSECUTIVE_NEWLINES}回までです。`);
+        if(n.length>NAME_LIMIT)throw new Error(`名前は${NAME_LIMIT}文字以内にしてください。`);
+        if(containsNGWord(t)||containsNGWord(x)||containsNGWord(n))throw new Error('不適切な単語が含まれています。');
+        const f=document.getElementById('newImage').files[0];
+        b.disabled=true;b.textContent='作成中...';
+        if(n&&n!==u.name){if(!setUserName(n))throw new Error(`名前は${NAME_LIMIT}文字以内にしてください。`);}
+        const i=f?await readFileAsDataURL(f):null;
+        const r=db.ref('threads').push();const d=r.key;const pK=r.key;
+        const tags=t.match(/#[\p{L}\p{N}_]+/ug)?.map(tag=>tag.substring(1))||[];
+        const now=Date.now();
+        const newThreadData={id:d,title:t,createdAt:now,lastUpdatedAt:now,op:u,posts:{[pK]:{id:pK,author:u,text:x,img:i,createdAt:now}},postCounter:1,tags:tags};
+        if (levelRestriction > 0) {
+            newThreadData.levelRestriction = levelRestriction;
+        }
+        await r.set(newThreadData);
+        localStorage.setItem(LAST_POST_TIME_KEY,now.toString());
+        location.hash='thread-'+d;
+      }catch(e){
+        alert('エラー: '+e.message);
+        if(b){b.disabled=false;b.textContent='スレ作成';}
+      }
+    };
+    setupVoteModal('newText');
+
+    const nextThreadDataJSON = localStorage.getItem(NEXT_THREAD_DATA_KEY);
+    if (nextThreadDataJSON) {
+        try {
+            const nextThreadData = JSON.parse(nextThreadDataJSON);
+            document.getElementById('newTitle').value = nextThreadData.title;
+            document.getElementById('newText').value = nextThreadData.text;
+            localStorage.removeItem(NEXT_THREAD_DATA_KEY);
+        } catch(e) {
+            localStorage.removeItem(NEXT_THREAD_DATA_KEY);
+        }
+    }
+  }
+  
+  //【安価通知機能修正】履歴ページ表示時に未読件数を表示するよう修正
+  function renderHistoryPage() {
+    document.getElementById('app').innerHTML = `<div class="card"><h2>📜 閲覧履歴</h2><div id="historyListContainer"></div></div>`;
+    const history = loadHistory();
+    const c = document.getElementById('historyListContainer');
+    const myId = getUser().permanentId;
+    const allAnchorStatus = loadAnchorStatus();
+    // 自分のIDに紐づく未読データのみを取得
+    const myAnchorStatus = allAnchorStatus[myId] || {};
+
+    if(history.length === 0) { 
+      c.innerHTML = '<div class="small-muted">まだ閲覧履歴がありません。</div>'; 
+    } else { 
+      c.innerHTML = '';
+      history.forEach(item => {
+        // スレッドID(item.id)に対応する未読件数を取得
+        const unreadCount = (myAnchorStatus[item.id] || []).length;
+        const unreadBadge = unreadCount > 0 ? `<span class="badge-new">${unreadCount}</span>` : '';
+        const i=document.createElement('div');
+        i.className='history-item';
+        i.innerHTML=`<div class="thread-info"><a class="thread-link" href="#thread-${item.id}">${escapeHTML(item.title)}</a> ${unreadBadge}</div><div class="thread-meta-info"><div class="small-muted">${formatTimestamp(item.visitedAt)}</div></div>`;
+        c.appendChild(i);
+      });
+    }
+  }
+
+  async function renderSettingsPage() {
+    cleanupListeners();
+    const user = getUser();
+
+    myTotalExp = (await db.ref(`userLevels/${user.permanentId}/exp`).once('value')).val() || 0;
+    const userLevel = getLevel(myTotalExp);
+
+    document.getElementById('app').innerHTML = `
+      <div class="card">
+        <h2>プロフィール設定</h2>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <input type="text" id="settingsNameInput" value="${escapeHTML(user.name)}" placeholder="新しい名前">
+          <button id="settingsSaveNameBtn" class="btn small">変更</button>
+        </div>
+        <div style="font-size:13px; display:flex; flex-direction:column; gap:8px;">
+          <div style="font-weight:bold;">あなたの称号: <span class="badge-level">${userLevel.title}</span> (Lv. ${userLevel.level})</div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span>Permanent ID: ${user.permanentId}</span>
+            <button class="btn small" data-copy-text="${user.permanentId}">コピー</button>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span>Daily ID: ${user.id}</span>
+            <button class="btn small" data-copy-text="${user.id}">コピー</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>名前変更履歴</h2>
+        <div id="nameHistoryContainer" style="font-size:13px;"></div>
+      </div>
+      
+      <div class="card">
+        <h2>自分の投稿を検索</h2>
+        <div class="search-box">
+          <input type="text" id="myPostSearchInput" placeholder="キーワード検索">
+          <button id="myPostSearchBtn" class="btn small">検索</button>
+        </div>
+        <div id="myPostSearchResults"></div>
+      </div>
+
+      <div class="card">
+        <h2>NGワード設定</h2>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <input type="text" id="ngWordInput" placeholder="NGワード" style="flex-grow:1;">
+          <select id="ngActionSelect">
+            <option value="hide">投稿を非表示</option>
+            <option value="red">単語を赤文字</option>
+          </select>
+          <button id="addNgWordBtn" class="btn small">追加</button>
+        </div>
+        <div id="ngWordsListContainer"></div>
+      </div>
+    `;
+
+    document.getElementById('settingsSaveNameBtn').onclick = () => {
+      const newName = document.getElementById('settingsNameInput').value.trim();
+      if(newName && !containsNGWord(newName)) {
+        if(setUserName(newName)) {
+          alert('名前を変更しました。');
+          renderSettingsPage();
+        }
+      } else {
+        alert('名前が空か、不適切な単語が含まれています。');
+      }
+    };
+    
+    document.querySelectorAll('[data-copy-text]').forEach(btn => {
+      btn.onclick = (e) => {
+        navigator.clipboard.writeText(e.target.dataset.copyText).then(() => {
+          const originalText = e.target.textContent;
+          e.target.textContent = 'OK!';
+          setTimeout(() => { e.target.textContent = originalText; }, 1000);
+        });
+      };
+    });
+
+    const nameHistoryContainer = document.getElementById('nameHistoryContainer');
+    const nameHistory = loadNameHistory();
+    if (nameHistory.length > 0) {
+      nameHistoryContainer.innerHTML = nameHistory.map(h => 
+        `<div><span class="small-muted">${formatTimestamp(h.changedAt)}</span> → <b>${escapeHTML(h.name)}</b></div>`
+      ).join('');
+    } else {
+      nameHistoryContainer.innerHTML = '<div class="small-muted">変更履歴はありません。</div>';
+    }
+
+    document.getElementById('myPostSearchBtn').onclick = async () => {
+      const keyword = document.getElementById('myPostSearchInput').value.trim();
+      const resultsContainer = document.getElementById('myPostSearchResults');
+      if (!keyword) {
+        resultsContainer.innerHTML = '<div class="small-muted">キーワードを入力してください。</div>';
+        return;
+      }
+      resultsContainer.innerHTML = '検索中...';
+      
+      if (allThreads.length === 0) {
+        const snapshot = await db.ref('threads').once('value');
+        const serverThreads = snapshot.val() ? Object.values(snapshot.val()) : [];
+        allThreads = serverThreads.filter(t => t && t.id && t.title && t.lastUpdatedAt);
+      }
+
+      const myId = getUser().permanentId;
+      const results = [];
+      allThreads.forEach(thread => {
+        if (thread.posts) {
+          Object.values(thread.posts).forEach(post => {
+            if (post.author && post.author.permanentId === myId && post.text.toLowerCase().includes(keyword.toLowerCase())) {
+              results.push({ thread, post });
+            }
+          });
+        }
+      });
+      
+      if (results.length > 0) {
+        resultsContainer.innerHTML = results.sort((a,b) => b.post.createdAt - a.post.createdAt).map(item => `
+          <div style="border-top:1px solid var(--border-color); padding: 8px 0;">
+            <div class="small-muted">スレ: <a href="#thread-${item.thread.id}">${escapeHTML(item.thread.title)}</a> (${formatTimestamp(item.post.createdAt)})</div>
+            <div>${renderContent(item.post.text)}</div>
+          </div>
+        `).join('');
+      } else {
+        resultsContainer.innerHTML = `<div class="small-muted">「${escapeHTML(keyword)}」に一致する投稿は見つかりませんでした。</div>`;
+      }
+    };
+
+    const ngWordInput = document.getElementById('ngWordInput');
+    const ngActionSelect = document.getElementById('ngActionSelect');
+    const addNgWordBtn = document.getElementById('addNgWordBtn');
+    const ngWordsListContainer = document.getElementById('ngWordsListContainer');
+
+    function renderNgList() {
+      const settings = loadNgSettings();
+      const words = Object.keys(settings);
+      if (words.length > 0) {
+        ngWordsListContainer.innerHTML = words.map(word => `
+          <div style="display:flex; align-items:center; gap:8px; font-size:13px; padding: 4px 0;">
+            <span style="flex-grow:1;"><b>${escapeHTML(word)}</b> → <span class="small-muted">${settings[word] === 'hide' ? '非表示' : '赤文字'}</span></span>
+            <button class="btn small warn" data-ng-word="${escapeHTML(word)}">削除</button>
+          </div>
+        `).join('');
+        ngWordsListContainer.querySelectorAll('[data-ng-word]').forEach(btn => {
+          btn.onclick = (e) => {
+            const wordToDelete = e.target.dataset.ngWord;
+            const currentSettings = loadNgSettings();
+            delete currentSettings[wordToDelete];
+            saveNgSettings(currentSettings);
+            renderNgList();
+          };
+        });
+      } else {
+        ngWordsListContainer.innerHTML = '<div class="small-muted">NGワードは設定されていません。</div>';
+      }
+    }
+    
+    addNgWordBtn.onclick = () => {
+      const word = ngWordInput.value.trim();
+      if (word) {
+        const action = ngActionSelect.value;
+        const settings = loadNgSettings();
+        settings[word] = action;
+        saveNgSettings(settings);
+        ngWordInput.value = '';
+        renderNgList();
+      }
+    };
+    
+    renderNgList();
+  }
+  
+  async function updateThreadView(id, t, userLevels, globalBanList) {
+    if(!document.getElementById('app')) return;
+    if(!t) { removeFromHistory(id); goHome(); return; }
+
+    const replyNameInput = document.getElementById('replyName');
+    const replyTextInput = document.getElementById('replyText');
+    const wasTextareaFocused = document.activeElement === replyTextInput;
+    const savedReplyName = replyNameInput ? replyNameInput.value : null;
+    const savedReplyText = replyTextInput ? replyTextInput.value : null;
+    const savedCursorPosition = replyTextInput ? replyTextInput.selectionStart : 0;
+    
+    const ngSettings = loadNgSettings();
+    const ngWords = Object.keys(ngSettings);
+
+    const posts = Object.values(t.posts||{}).sort((a,b)=>a.createdAt-b.createdAt);
+    
+    const anchorCounts = {};
+    posts.forEach((p, postIndex) => {
+        const anchors = p.text.match(/>>(\d+)/g) || [];
+        anchors.forEach(anchor => {
+            const postNum = parseInt(anchor.replace('>>', ''), 10);
+            if(postNum > 0 && postNum <= posts.length){
+                const targetPostId = posts[postNum - 1].id;
+                anchorCounts[targetPostId] = (anchorCounts[targetPostId] || 0) + 1;
+            }
+        });
+    });
+
+    addToHistory(t.id,t.title,t.lastUpdatedAt);
+    const u=getUser(),o=t.op&&t.op.permanentId===u.permanentId,isAdm=ADMIN_IDS.includes(u.permanentId);
+    let deleteBtnHtml = '';
+    if(o || isAdm) {
+      deleteBtnHtml = `<button class="btn small warn" data-action="delete-thread" data-thread-id="${id}" style="margin-left:auto;">スレッド削除</button>`;
+    }
+    const pC=posts.length;
+    let rF = '';
+    if (pC >= POST_LIMIT) {
+        if (o) {
+            rF = `<div style="text-align:center; padding:10px;"><button class="btn" onclick="window.prepareNextThread('${id}')">次スレを作成</button></div>`;
+        } else {
+            rF = `<div class="banned-note" style="text-align:center;padding:10px;">このスレッドは${POST_LIMIT}レスに達しました。</div>`;
+        }
+    } else {
+        rF = `<h4>レス投稿</h4><input id="replyName" type="text" placeholder="名前" value="${escapeHTML(u.name)}" style="margin-bottom:8px;"><small class="small-muted" style="display:block;margin-top:-6px;margin-bottom:8px;">名前欄に sage と入力するとスレッドがトップに上がらなくなります。</small><textarea id="replyText" placeholder="本文"></textarea><div class="controls" style="justify-content:flex-start; margin-top:8px;"><button id="createVoteBtn" class="btn small">アンケート作成</button></div><div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;"><input id="replyImage" type="file" accept="image/*"><button class="btn" id="replyBtn">投稿</button></div>`;
+    }
+
+    let pH='';posts.forEach((post,idx)=>{const exp=(userLevels[post.author.permanentId] && userLevels[post.author.permanentId].exp) || 0;const l=getLevel(exp);const b=t.banned&&t.banned[post.author.permanentId],gb=globalBanList[post.author.permanentId],reacs=post.reactions||{},mR=reacs[u.permanentId];let aH=`<b class="post-author" data-action="show-profile" data-name="${escapeHTML(post.author.name)}" data-id="${post.author.permanentId}" data-isopadm="${o||isAdm}">${escapeHTML(post.author.name)}</b> <span class="badge-level" title="Lv.${l.level}">${l.title}</span>`;if(post.author.permanentId===t.op.permanentId)aH+=` <span class="badge-op">主</span>`;
+    if(anchorCounts[post.id]) { aH += ` <span class="badge-anchor" data-action="show-anchors" data-thread-id="${id}" data-post-id="${post.id}">${anchorCounts[post.id]}</span>`; }
+    const rC={};BASE_REACTIONS.forEach(r=>rC[r]=0);Object.values(reacs).forEach(reac=>{if(rC[reac]!==undefined)rC[reac]++;});let ctlH=BASE_REACTIONS.map(bR=>{const count=rC[bR];const iMR=mR===bR;const dR=iMR?REACTION_PAIRS[bR]:bR;return`<button class="btn small ${iMR?'liked':''}" data-action="react" data-thread-id="${id}" data-post-id="${post.id}" data-reac="${bR}">${dR} ${count}</button>`;}).join(' ');if(u.permanentId===post.author.permanentId||o||isAdm)ctlH+=` <button class="btn small warn" data-action="delete-post" data-thread-id="${id}" data-post-id="${post.id}">削除</button>`;if(u.permanentId===post.author.permanentId)ctlH+=` <button class="btn small" data-action="edit-post" data-thread-id="${id}" data-post-id="${post.id}">編集</button>`;
+    
+    let pB=post.deleted?`<div class="deleted-note">[削除されました]</div>`:`<div class="body">${renderContent(post.text,post)}</div>${post.img?`<img src="${post.img}" class="post-image" data-action="open-lightbox">`:''}`;
+    if (!post.deleted) {
+      let isHidden = false;
+      let processedText = renderContent(post.text, post);
+      for (const word of ngWords) {
+        if (post.text.toLowerCase().includes(word.toLowerCase())) {
+          if (ngSettings[word] === 'hide') {
+            pB = `<div class="ng-hidden-post">[NGワードに一致したため非表示]</div>`;
+            isHidden = true;
+            break; 
+          } else if (ngSettings[word] === 'red') {
+            const regex = new RegExp(escapeHTML(word), 'gi');
+            processedText = processedText.replace(regex, `<span class="ng-word-red">${escapeHTML(word)}</span>`);
+          }
+        }
+      }
+      if (!isHidden) {
+         pB = `<div class="body">${processedText}</div>${post.img?`<img src="${post.img}" class="post-image" data-action="open-lightbox">`:''}`;
+      }
+    }
+
+    pH+=`<div class="post" id="post-${idx+1}" data-post-id="${post.id}"><div class="meta"><span class="no" data-action="quote" data-num="${idx+1}">No.${idx+1}</span>${aH}</div>${b||gb?`<div class="banned-note">${gb?'[このユーザーはBANされています]':'[このユーザーはこのスレでアク禁されています]'}</div>`:`${pB}<div class="controls">${ctlH}<span class="timestamp small-muted">${formatTimestamp(post.createdAt)}</span></div>`}</div>`;});
+    
+    document.getElementById('app').innerHTML=`<div class="card"><div class="thread-header"><div class="thread-header-main"><h2>${escapeHTML(t.title)}</h2></div><div class="thread-header-meta"><div class="small-muted">作成: ${formatTimestamp(t.createdAt)}</div><div class="small-muted" style="margin-top:4px;">閲覧中: <span id="viewer-count">${currentViewers}</span>人</div></div></div><div style="display:flex; justify-content:flex-end; margin-bottom:8px;">${deleteBtnHtml}</div><div class="search-box" style="padding: 12px; background: var(--bg); border-radius: 8px; margin-bottom: 12px;"><input type="text" id="threadSearchInput" placeholder="このスレ内を検索"><button id="threadSearchBtn" class="btn small">検索</button></div></div><div class="card" id="postsContainer">${pH}</div><div class="card">${rF}</div>`;
+    
+    if (savedReplyName !== null) {
+        const newReplyNameInput = document.getElementById('replyName');
+        if (newReplyNameInput) newReplyNameInput.value = savedReplyName;
+    }
+    if (savedReplyText !== null) {
+        const newReplyTextInput = document.getElementById('replyText');
+        if (newReplyTextInput) {
+            newReplyTextInput.value = savedReplyText;
+            if (wasTextareaFocused) {
+                newReplyTextInput.focus();
+                newReplyTextInput.setSelectionRange(savedCursorPosition, savedCursorPosition);
+            }
+        }
+    }
+
+    if(pC<POST_LIMIT){document.getElementById('replyBtn').onclick=()=>postReply(id, posts);setupVoteModal('replyText');}
+  }
+
+  async function renderThread(id) {
+    document.getElementById('app').innerHTML=`<div class="card">読み込み中...</div>`;
+    const userLevels=(await db.ref('userLevels').once('value')).val()||{};
+    myTotalExp = (await db.ref(`userLevels/${getUser().permanentId}/exp`).once('value')).val() || 0;
+    
+    const threadRef = db.ref('threads/'+id);
+    const threadSnapshot = await threadRef.once('value');
+    const threadData = threadSnapshot.val();
+
+    if(threadData && threadData.levelRestriction > 0) {
+        if (getLevel(myTotalExp).level < threadData.levelRestriction) {
+            document.getElementById('app').innerHTML = `<div class="card"><div class="banned-note">このスレッドを閲覧・投稿するには Lv.${threadData.levelRestriction} 以上が必要です。</div></div>`;
+            return;
+        }
+    }
+
+    //【安価通知機能修正】既読処理ロジック
+    const myId = getUser().permanentId;
+    const anchorStatus = loadAnchorStatus();
+    // このスレッドに未読安価がある場合のみ処理
+    if (anchorStatus[myId] && anchorStatus[myId][id]) {
+        // 未読情報を削除
+        delete anchorStatus[myId][id];
+        // ユーザーデータが空になったら、そのユーザーのエントリ自体を削除
+        if (Object.keys(anchorStatus[myId]).length === 0) {
+            delete anchorStatus[myId];
+        }
+        saveAnchorStatus(anchorStatus);
+        // ヘッダーの総合未読数を更新
+        updateTotalUnreadBadge();
+    }
+    
+    const vRef=db.ref('viewers/'+id);
+    myConnectionRef=vRef.push(true);
+    myConnectionRef.onDisconnect().remove();
+    const vCb=vRef.on('value',s=>{
+        const count = s.numChildren();
+        currentViewers = count;
+        db.ref('threads/' + id + '/viewerCount').set(count);
+        const e = document.getElementById('viewer-count');
+        if(e) e.textContent = currentViewers;
+    });
+    activeViewersListener={ref:vRef,callback:vCb};
+
+    const cb=threadRef.on('value',s=>{
+      updateThreadView(id, s.val(), userLevels, globalBanList);
+    }, e => { console.error(e); document.getElementById('app').innerHTML = `<div class="card"><div class="banned-note">スレッドの読み込みに失敗しました。</div></div>`;});
+    activeDataListener={ref:threadRef,callback:cb};
+  }
+
+  async function postReply(id, posts) {
+    const b=document.getElementById('replyBtn');b.disabled=true;
+    try {
+        const threadSnapshot = await db.ref(`threads/${id}`).once('value');
+        const threadData = threadSnapshot.val();
+        const isLevelUpThread = threadData.tags && threadData.tags.includes('レベル上げ');
+
+        const today = getJstDateString();
+        let activity = loadDailyActivity();
+        let bonusExp = 0;
+        
+        if (activity.date !== today) {
+            if (activity.lastBonusDate !== today) {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = getJstDateString(yesterday);
+                if (activity.date === yesterdayStr) {
+                    bonusExp = Math.floor(activity.postCount / 2);
+                }
+                activity = { date: today, postCount: 0, lastBonusDate: today };
+            }
+        }
+        activity.postCount++;
+        saveDailyActivity(activity);
+        
+        if (!isLevelUpThread) {
+            const lastPostTime=localStorage.getItem(LAST_POST_TIME_KEY);
+            if(lastPostTime&&Date.now()-parseInt(lastPostTime)<POST_INTERVAL_SECONDS*1000){throw new Error(`投稿は${POST_INTERVAL_SECONDS}秒に1回までです。`);}
+        }
+
+        const u=getUser();
+        const iGB=(await db.ref(`globalBan/${u.permanentId}`).once('value')).val();if(iGB)throw new Error('あなたはこの掲示板から追放されています。');
+        const s=await db.ref(`threads/${id}/postCounter`).once('value');if(s.val()>=POST_LIMIT)throw new Error(`このスレッドは${POST_LIMIT}レスの上限に達しました。`);
+        const cU=getUser();const nN=document.getElementById('replyName').value.trim();const iS=nN.toLowerCase()==='sage';const fN=iS?cU.name:(nN||cU.name);
+    
+        const rawText = document.getElementById('replyText').value;
+        const t = rawText.trim();
+    
+        if(t.length > TEXT_LIMIT) throw new Error(`本文は${TEXT_LIMIT}文字以内にしてください。`);
+        if((rawText.match(/\n/g) || []).length > MAX_NEWLINES) throw new Error(`改行は${MAX_NEWLINES}回までです。`);
+        if(rawText.match(new RegExp(`\\n{${MAX_CONSECUTIVE_NEWLINES + 1},}`))) throw new Error(`連続した改行は${MAX_CONSECUTIVE_NEWLINES}回までです。`);
+        if(fN.length>NAME_LIMIT)throw new Error(`名前は${NAME_LIMIT}文字以内にしてください。`);
+        if(fN&&fN!==cU.name){if(!setUserName(fN))throw new Error(`名前は${NAME_LIMIT}文字以内にしてください。`);}
+        if(containsNGWord(t)||containsNGWord(fN))throw new Error('不適切な単語が含まれています。');
+        const f=document.getElementById('replyImage').files[0];if(!t&&!f)throw new Error('本文か画像が必要です');
+        const n=(await db.ref(`threads/${id}/banned/${cU.permanentId}`).once('value')).val();if(n)throw new Error('あなたはこのスレッドでアク禁されています。');
+        const i=f?await readFileAsDataURL(f):null;
+        const nPR=db.ref(`threads/${id}/posts`).push();
+        const nPK=nPR.key;
+        const pD={id:nPK,author:cU,text:t,img:i,createdAt:Date.now()};
+        const upd={};
+        upd[`threads/${id}/posts/${nPK}`]=pD;
+        upd[`threads/${id}/postCounter`]=firebase.database.ServerValue.increment(1);
+        
+        if(!iS && !isLevelUpThread){
+            upd[`threads/${id}/lastUpdatedAt`]=firebase.database.ServerValue.TIMESTAMP;
+        }
+        
+        const totalExpToAdd = 1 + bonusExp;
+        upd[`userLevels/${cU.permanentId}/exp`]=firebase.database.ServerValue.increment(totalExpToAdd);
+        myTotalExp += totalExpToAdd;
+
+        //【安価通知機能修正】安価記録ロジック
+        const anchorStatus = loadAnchorStatus();
+        const anchors = t.match(/>>(\d+)/g) || [];
+        anchors.forEach(anchor => {
+            const postNum = parseInt(anchor.replace('>>', ''), 10);
+            if(postNum > 0 && postNum <= posts.length){
+                const targetPost = posts[postNum - 1];
+                // 自分自身への安価は通知しない
+                if (targetPost && targetPost.author.permanentId !== cU.permanentId) {
+                    const recipientId = targetPost.author.permanentId;
+                    // 新しいデータ構造で記録
+                    if (!anchorStatus[recipientId]) anchorStatus[recipientId] = {};
+                    if (!anchorStatus[recipientId][id]) anchorStatus[recipientId][id] = [];
+                    // 重複して通知しないようにチェック
+                    if (!anchorStatus[recipientId][id].includes(nPK)) {
+                        anchorStatus[recipientId][id].push(nPK);
+                    }
+                }
+            }
+        });
+        saveAnchorStatus(anchorStatus);
+
+        await db.ref().update(upd);
+        if (bonusExp > 0) {
+            alert(`${bonusExp}のデイリーボーナス経験値を獲得しました！`);
+        }
+        localStorage.setItem(LAST_POST_TIME_KEY,Date.now().toString());
+        document.getElementById('replyText').value='';
+        document.getElementById('replyImage').value='';
+    }catch(e){
+        alert('投稿エラー: '+e.message);
+    }finally{
+        if(b) b.disabled=false;
+    }
+  }
+  
+  function containsNGWord(t){const l=t.toLowerCase();return NG_WORDS.some(w=>l.includes(w.toLowerCase()));}
+  function readFileAsDataURL(f){if(!f.type.startsWith('image/'))throw new Error('画像ファイルを選択してください');if(f.size>MAX_IMAGE_BYTES)throw new Error(`画像サイズは${MAX_IMAGE_BYTES/1024/1024}MB以下にしてください`);return new Promise((s,j)=>{const r=new FileReader();r.onload=()=>s(r.result);r.onerror=j;r.readAsDataURL(f);});}
+
+  function setupVoteModal(textareaId){const oB=document.getElementById('createVoteBtn');if(!oB)return;const m=document.getElementById('voteModal'),cM=document.getElementById('closeVoteModalBtn'),aO=document.getElementById('addVoteOptionBtn'),iB=document.getElementById('insertVoteBtn'),con=document.getElementById('voteOptionsContainer');oB.onclick=()=>{m.style.display='flex';};cM.onclick=()=>{m.style.display='none';};m.onclick=(e)=>{if(e.target===e.currentTarget)m.style.display='none';};aO.onclick=()=>{const i=document.createElement('input');i.type='text';i.className='vote-option-input';i.placeholder=`選択肢${con.children.length+1}`;i.style.marginBottom='8px';con.appendChild(i);};iB.onclick=()=>{const optsRaw=Array.from(con.getElementsByClassName('vote-option-input')).map(i=>i.value.trim());const opts=optsRaw.filter(v=>v!=='');if(opts.length<2){alert('有効な選択肢を2つ以上入力してください。');return;}const uniqueOpts=[...new Set(opts)];if(uniqueOpts.length!==opts.length){alert('選択肢が重複しています。');return;}for(const opt of uniqueOpts){if(opt.length>VOTE_OPTION_LIMIT){alert(`選択肢は${VOTE_OPTION_LIMIT}文字以内にしてください。`);return;}}const tag=`[vote:${uniqueOpts.join(',')}]`;const ta=document.getElementById(textareaId);ta.value+=`\n${tag}\n`;m.style.display='none';};}
+  
+  window.react = (t, p, reac) => {const r=db.ref(`threads/${t}/posts/${p}/reactions`),u=getUser().permanentId;r.transaction(c=>{if(c===null)c={};if(c[u]===reac){delete c[u];}else{c[u]=reac;}return Object.keys(c).length>0?c:null;});};
+  window.editPost=async(t,p)=>{const r=db.ref(`threads/${t}/posts/${p}`);const o=(await r.once('value')).val();if(o.author.permanentId!==getUser().permanentId){alert('自分の投稿しか編集できません');return;}const n=prompt('編集内容を入力',o.text);if(n===null)return;const nT=n.trim();if(nT===''){alert('本文を空にすることはできません。');return;}if(nT.length>TEXT_LIMIT){alert(`本文は${TEXT_LIMIT}文字以内にしてください。`);return;}if(containsNGWord(nT)){alert('不適切な単語が含まれています。');return;}r.update({text:nT});};
+  window.deletePost=(t,p)=>{if(confirm('この投稿を削除しますか？')){const u={};u[`threads/${t}/posts/${p}/text`]='';u[`threads/${t}/posts/${p}/img`]=null;u[`threads/${t}/posts/${p}/deleted`]=true;db.ref().update(u);}};
+  
+  window.toggleGlobalBan = async (userPermanentId, name) => {
+    const btn = event.target;
+    btn.disabled = true;
+    try {
+      const ref = db.ref(`globalBan/${userPermanentId}`);
+      const snapshot = await ref.once('value');
+      const isBanned = snapshot.val();
+      const actionText = isBanned ? '永久追放を解除' : '永久追放';
+      if (confirm(`${name} を ${actionText} しますか？`)) {
+        await ref.set(isBanned ? null : true);
+        alert(`${name} の${actionText}に成功しました。`);
+      }
+    } catch (e) {
+      alert("永久追放に失敗しました");
+      console.error(e);
+    } finally {
+      btn.disabled = false;
+    }
+  };
+
+  window.showUserProfile=async(name, userPermanentId, isOpAdm)=>{
+    const modal = document.getElementById('profileModal'), nameEl = document.getElementById('profileName'), idEl = document.getElementById('profileId'), postsListEl = document.getElementById('profilePostsList'), controlsEl = document.getElementById('profileControls');
+    nameEl.textContent = name; idEl.textContent = `Permanent ID: ${userPermanentId}`; postsListEl.innerHTML = '投稿を読み込み中...'; controlsEl.innerHTML = '';
+    
+    const currentUser = getUser();
+    if((isOpAdm || ADMIN_IDS.includes(currentUser.permanentId)) && currentUser.permanentId !== userPermanentId) {
+      const currentThreadId = location.hash.startsWith('#thread-') ? location.hash.replace('#thread-','') : null;
+      if (currentThreadId) {
+        const threadData = (await db.ref(`threads/${currentThreadId}`).once('value')).val();
+        if (threadData) {
+          const isThreadOp = threadData.op.permanentId === currentUser.permanentId;
+          if(isThreadOp || ADMIN_IDS.includes(currentUser.permanentId)) {
+            const isBanned = threadData.banned && threadData.banned[userPermanentId];
+            controlsEl.innerHTML += `<button class="btn small warn" onclick="window.toggleBan('${currentThreadId}', '${userPermanentId}', '${escapeHTML(name).replace(/'/g, "\\'")}')">${isBanned ? 'このスレのアク禁解除' : 'このスレでアク禁'}</button>`;
+          }
+        }
+      }
+      if(ADMIN_IDS.includes(currentUser.permanentId)) {
+        const isGloballyBanned = (await db.ref(`globalBan/${userPermanentId}`).once('value')).val();
+        controlsEl.innerHTML += `<button class="btn small warn" onclick="window.toggleGlobalBan('${userPermanentId}', '${escapeHTML(name).replace(/'/g, "\\'")}')">${isGloballyBanned ? '永久追放を解除' : '永久追放'}</button>`;
+      }
+    }
+    modal.style.display = 'flex';
+
+    if (globalBanList[userPermanentId]) {
+      postsListEl.innerHTML = '<div class="banned-note">[このユーザーはBANされているため、投稿内容は表示されません]</div>';
+      return;
+    }
+
+    try {
+      const s = await db.ref('threads').once('value');
+      const allThreadsData = s.val() || {}; 
+      const userPosts = [];
+      for (const threadId in allThreadsData) {
+        const thread = allThreadsData[threadId];
+        if (thread.posts) {
+          for (const postId in thread.posts) {
+            const post = thread.posts[postId];
+            if (post.author && post.author.permanentId === userPermanentId) {
+              userPosts.push({ thread: thread, post: post });
+            }
+          }
+        }
+      }
+      if (userPosts.length === 0) { postsListEl.innerHTML = '<div class="small-muted">このユーザーの投稿はありません。</div>'; }
+      else { postsListEl.innerHTML = userPosts.sort((a,b)=>b.post.createdAt-a.post.createdAt).map(item=>`<div class="profile-post-item" style="border-bottom: 1px solid var(--border-color); padding: 8px 0;"><div class="small-muted">スレ: <a href="#thread-${item.thread.id}" onclick="window.closeUserProfile()">${escapeHTML(item.thread.title)}</a></div><div style="margin: 4px 0;">${item.post.deleted?'[削除されました]':renderContent(item.post.text.substring(0,100))}${!item.post.deleted&&item.post.text.length>100?'...':''}</div><button class="btn small" onclick="window.goToPost('${item.thread.id}','${item.post.id}')">投稿に飛ぶ</button></div>`).join(''); }
+    } catch(e) {
+      postsListEl.innerHTML = '<div class="banned-note">投稿の読み込みに失敗しました。</div>'; console.error(e);
+    }
+  };
+  
+  window.prepareNextThread = async (threadId) => {
+    try {
+        const snapshot = await db.ref(`threads/${threadId}`).once('value');
+        const thread = snapshot.val();
+        if (!thread) return;
+
+        let newTitle = thread.title;
+        const partMatch = thread.title.match(/Part\.(\d+)/);
+        if (partMatch) {
+            const nextPart = parseInt(partMatch[1]) + 1;
+            newTitle = thread.title.replace(/Part\.\d+/, `Part.${nextPart}`);
+        } else {
+            newTitle = `${thread.title} Part.2`;
+        }
+        
+        const newText = `前スレ：${location.origin}${location.pathname}#thread-${thread.id}\n\n`;
+
+        localStorage.setItem(NEXT_THREAD_DATA_KEY, JSON.stringify({ title: newTitle, text: newText }));
+        goHome();
+    } catch(e) {
+        alert('次スレの準備に失敗しました。');
+        console.error(e);
+    }
+  };
+  
+  window.showAnchors = async (targetPostId, threadId) => {
+      const modal = document.getElementById('anchorModal');
+      const body = document.getElementById('anchorModalBody');
+      body.innerHTML = '読み込み中...';
+      modal.style.display = 'flex';
+
+      try {
+          const threadSnapshot = await db.ref(`threads/${threadId}`).once('value');
+          const thread = threadSnapshot.val();
+          if (!thread || !thread.posts) {
+              body.innerHTML = 'エラー: スレッドが見つかりません。';
+              return;
+          }
+          const allPosts = Object.values(thread.posts).sort((a, b) => a.createdAt - b.createdAt);
+          const targetPostIndex = allPosts.findIndex(p => p.id === targetPostId) + 1;
+
+          const anchorPosts = allPosts.filter(p => {
+              const anchors = p.text.match(/>>(\d+)/g) || [];
+              return anchors.some(anchor => parseInt(anchor.replace('>>', '')) === targetPostIndex);
+          });
+
+          if (anchorPosts.length > 0) {
+              body.innerHTML = anchorPosts.map(post => {
+                  const author = post.author ? escapeHTML(post.author.name) : '不明';
+                  return `<div class="post"><div class="meta"><b class="post-author">${author}</b> <span class="small-muted">${formatTimestamp(post.createdAt)}</span></div><div class="body">${renderContent(post.text)}</div></div>`;
+              }).join('');
+          } else {
+              body.innerHTML = '<div class="small-muted">この投稿への返信はありません。</div>';
+          }
+      } catch(e) {
+          body.innerHTML = '<div class="banned-note">返信の読み込みに失敗しました。</div>';
+          console.error(e);
+      }
+  };
+
+  window.closeUserProfile=()=>{document.getElementById('profileModal').style.display='none';};
+  window.goToPost=(t,p)=>{window.closeUserProfile();location.hash='thread-'+t;setTimeout(()=>{db.ref(`threads/${t}/posts`).orderByChild('createdAt').once('value',s=>{const posts=s.val()||{};const pIdx=Object.keys(posts).findIndex(k=>k===p);if(pIdx!==-1){const tEId=`post-${pIdx+1}`;const pE=document.getElementById(tEId);if(pE){pE.scrollIntoView({behavior:'smooth',block:'center'});pE.style.transition='background-color 0.5s';pE.style.backgroundColor='rgba(21,101,192,0.1)';setTimeout(()=>{pE.style.backgroundColor='';},2000);}}});},500);};
+  
+  function applyTheme(t){const b=document.getElementById('themeToggleBtn');if(t==='dark'){document.body.classList.add('dark-mode');if(b)b.textContent='☀️';}else{document.body.classList.remove('dark-mode');if(b)b.textContent='🌙';}}
+
+  async function renderApp(){
+    cleanupListeners();
+    currentViewers = 0;
+    refreshHeader();
+    //【安価通知機能修正】ページ遷移時に必ずバッジを更新
+    updateTotalUnreadBadge();
+    const h=location.hash||'#';
+    
+    if (h.startsWith('#thread-')) {
+      renderThread(h.replace('#thread-',''));
+    } else if (h === '#history') {
+      renderHistoryPage();
+    } else if (h === '#settings') {
+      renderSettingsPage();
+    } else {
+      renderHome();
+      const ref = db.ref('threads');
+      const cb = ref.orderByChild('lastUpdatedAt').on('value', s => {
+        const serverThreads = s.val() ? Object.values(s.val()) : [];
+        allThreads = serverThreads.filter(t => t && t.id && t.title && t.lastUpdatedAt).sort((a, b) => b.lastUpdatedAt - a.lastUpdatedAt);
+        performDisplay();
+      }, e => { console.error(e); document.getElementById('app').innerHTML = `<div class="card"><div class="banned-note">データの読み込みに失敗しました。</div></div>`;});
+      activeDataListener = { ref, callback: cb };
+    }
+  }
+  
+  window.castVote = (threadId, postId, option) => {
+    const ref = db.ref(`threads/${threadId}/posts/${postId}/votes/${getUser().permanentId}`);
+    ref.transaction(currentVote => {
+        return currentVote === option ? null : option;
+    });
+  };
+
+  document.getElementById('homeBtn').onclick=goHome;
+  document.getElementById('historyBtn').onclick=()=>location.hash='history';
+  document.getElementById('settingsBtn').onclick=()=>location.hash='settings';
+  document.getElementById('refreshBtn').onclick=()=>location.reload();
+  document.getElementById('themeToggleBtn').onclick=()=>{const cT=localStorage.getItem(THEME_KEY)||'light';const nT=cT==='light'?'dark':'light';localStorage.setItem(THEME_KEY,nT);applyTheme(nT);};
+  document.getElementById('closeProfileBtn').onclick=window.closeUserProfile;
+  document.getElementById('profileModal').onclick=(e)=>{if(e.target===e.currentTarget)window.closeUserProfile();};
+  const lightbox = document.getElementById('imageLightbox');
+  lightbox.onclick=()=>lightbox.style.display='none';
+  const anchorModal = document.getElementById('anchorModal');
+  document.getElementById('closeAnchorModalBtn').onclick=()=>anchorModal.style.display='none';
+  anchorModal.onclick=(e)=>{if(e.target===e.currentTarget)anchorModal.style.display='none';};
+
+  applyTheme(localStorage.getItem(THEME_KEY)||'light');
+  window.addEventListener('hashchange', renderApp);
+  renderApp();
+
+  document.body.addEventListener('click', async (e) => {
+    const target = e.target.closest('[data-action]');
+    if (!target) return;
+    const { action, threadId, postId, reac, name, id, isopadm, num, voteOption } = target.dataset;
+
+    if (action === 'react') window.react(threadId, postId, reac);
+    else if (action === 'delete-post') window.deletePost(threadId, postId);
+    else if (action === 'edit-post') window.editPost(threadId, postId);
+    else if (action === 'show-profile') window.showUserProfile(name, id, isopadm === 'true');
+    else if (action === 'open-lightbox') { lightbox.style.display='flex'; document.getElementById('lightboxImage').src=target.src; }
+    else if (action === 'delete-thread') {
+      if(confirm('本当にこのスレッドを削除しますか？\nこの操作は取り消せません。')){
+        try {
+          await db.ref('threads/' + threadId).remove();
+          await db.ref('viewers/' + threadId).remove(); 
+          allThreads = allThreads.filter(t => t.id !== threadId);
+          alert('スレッドの削除に成功しました。');
+          goHome();
+        } catch (err) {
+          alert('スレッドの削除に失敗しました。');
+          console.error(err);
+        }
+      }
+    }
+    else if (action === 'quote') { const ta=document.getElementById('replyText'); if(ta){ta.value+=`>>${num} `; ta.focus();} }
+    else if (action === 'vote') { window.castVote(threadId, postId, voteOption); }
+    else if (action === 'show-anchors') { window.showAnchors(postId, threadId); }
+  });
+}
+</script>
+</body>
+</html>
