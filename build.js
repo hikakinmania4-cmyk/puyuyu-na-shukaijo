@@ -1,63 +1,79 @@
-// build.js
+// build.js (最終完成版)
 
 const fs = require('fs');
 const path = require('path');
 const ejs = require('ejs');
 const admin = require('firebase-admin');
 
-// GitHub Actionsから渡される秘密のキーを読み込む設定です。
-// process.env.FIREBASE_SERVICE_ACCOUNT の部分は、後でGitHub側で設定します。
+// GitHub Actionsから渡される秘密のキーを読み込む設定
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  // ▼▼▼ あなたのデータベースURLに書き換えてください ▼▼▼
-  databaseURL: "https://config-f5509-default-rtdb.firebaseio.com" 
+  databaseURL: "https://config-f5509-default-rtdb.firebaseio.com" // あなたのデータベースURL
 });
 
 const db = admin.database();
 
-// 生成したHTMLファイルを出力するフォルダ名を 'dist' とします。
+// 生成したHTMLファイルを出力するフォルダ名
 const OUTPUT_DIR = path.join(__dirname, 'dist'); 
 
 async function buildSite() {
   try {
     console.log('Build process started...');
     
-    // 出力先フォルダ 'dist' がなければ、新しく作成します。
+    // 出力先フォルダ 'dist' がなければ、新しく作成
     if (!fs.existsSync(OUTPUT_DIR)) {
       fs.mkdirSync(OUTPUT_DIR);
     }
 
-    // --- スレッド一覧ページのデータをFirebaseから取得 ---
-    console.log('Fetching thread metadata from Firebase...');
-    const metaRef = db.ref('threadMetadata').orderByChild('lastUpdatedAt');
-    const metaSnapshot = await metaRef.once('value');
-    // アーカイブされていないスレッドだけをフィルタリングして、新しい順に並べ替えます。
-    const allThreads = metaSnapshot.val() ? Object.values(metaSnapshot.val()).filter(t => t && t.title && !t.isArchived).sort((a, b) => b.lastUpdatedAt - a.lastUpdatedAt) : [];
-    console.log(`Successfully fetched ${allThreads.length} active threads.`);
+    // --- 1. 全スレッドの完全なデータをFirebaseから一度に取得 ---
+    console.log('Fetching all threads data from Firebase...');
+    const threadsRef = db.ref('threads');
+    const threadsSnapshot = await threadsRef.once('value');
+    const allThreadsData = threadsSnapshot.val() || {};
+    
+    // index.html用に、アーカイブされていないスレッドをフィルタリングして新しい順にソート
+    const threadsForIndex = Object.values(allThreadsData)
+        .filter(t => t && t.title && !t.isArchived)
+        .sort((a, b) => b.lastUpdatedAt - a.lastUpdatedAt);
+    console.log(`Successfully fetched ${threadsForIndex.length} active threads.`);
 
-    // --- index.html の生成 ---
+    // --- 2. index.html（スレッド一覧ページ）の生成 ---
     console.log('Rendering index.html...');
-    const templatePath = path.join(__dirname, 'views', 'index.ejs');
-    // ejs.renderFileを使って、テンプレートとデータを合体させます。
-    const indexHtml = await ejs.renderFile(templatePath, { allThreads: allThreads });
-    // 完成したHTMLを dist/index.html として保存します。
+    const indexPath = path.join(__dirname, 'views', 'index.ejs');
+    const indexHtml = await ejs.renderFile(indexPath, { allThreads: threadsForIndex });
     fs.writeFileSync(path.join(OUTPUT_DIR, 'index.html'), indexHtml);
     console.log('Successfully generated: dist/index.html');
 
-    // 将来的には、ここで各スレッド詳細ページ (thread-xxxx.html) もループで生成できます。
+    // --- 3. 全てのスレッド詳細ページの生成 ---
+    console.log('Rendering individual thread pages...');
+    const threadTemplatePath = path.join(__dirname, 'views', 'thread.ejs');
+    
+    // ループを使って、アクティブなスレッドのページを一つずつ生成
+    for (const thread of threadsForIndex) {
+      // 投稿を時系列順にソート
+      const posts = Object.values(thread.posts || {}).sort((a, b) => a.createdAt - b.createdAt);
+      
+      // テンプレートとデータを合体させてHTMLを生成
+      const threadHtml = await ejs.renderFile(threadTemplatePath, { thread: thread, posts: posts });
+      
+      // thread-xxxx.html という名前でファイルを出力
+      const outputFilename = `thread-${thread.id}.html`;
+      fs.writeFileSync(path.join(OUTPUT_DIR, outputFilename), threadHtml);
+      console.log(` -> Generated: ${outputFilename}`);
+    }
     
     console.log('Build process finished successfully! ✨');
-    // 正常に終了したことをシステムに伝えます。
+    // 正常終了をシステムに伝える
     process.exit(0);
 
   } catch (error) {
     console.error("❌ Build failed:", error);
-    // エラーが発生したことをシステムに伝えます。
+    // 異常終了をシステムに伝える
     process.exit(1);
   }
 }
 
-// このプログラムを実行します。
+// プログラムを実行
 buildSite();
