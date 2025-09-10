@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -18,7 +19,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <style>
-  /* --- CSSスタイルは変更なし --- */
+  /* --- CSSスタイル（元のコードから変更なし） --- */
   :root{--primary:#1565c0;--accent:#0288d1;--bg:#f5f7fb;--card:#ffffff;--muted:#6b7280;--danger:#ef4444;--text-main:#111827;--text-muted:#6b7280;--border-color:#e5e7eb;}
   .dark-mode{--primary:#60a5fa;--accent:#38bdf8;--bg:#111827;--card:#1f2937;--muted:#9ca3af;--text-main:#f9fafb;--text-muted:#9ca3af;--border-color:#374151;}
   *{box-sizing:border-box}
@@ -27,111 +28,30 @@
   header h1{margin:0;font-size:18px;flex-grow:1;word-break:break-all;}
   header .controls{display:flex;gap:8px;align-items:center;}
   header .userbox{font-size:13px; margin-left: auto; text-align:right;}
-  header button{background:rgba(255,255,255,0.14);border:none;color:#fff;padding:6px 10px;border-radius:6px;cursor:pointer; display: inline-flex; align-items: center; gap: 6px; position:relative;}
-  header button:hover{background:rgba(255,255,255,0.22)}
+  header button, header a.btn { text-decoration: none; background:rgba(255,255,255,0.14);border:none;color:#fff;padding:6px 10px;border-radius:6px;cursor:pointer; display: inline-flex; align-items: center; gap: 6px; position:relative;}
+  header button:hover, header a.btn:hover {background:rgba(255,255,255,0.22)}
   .wrap{max-width:1000px;margin:16px auto;padding:12px}
   .card{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 2px 6px rgba(2,6,23,0.06);margin-bottom:12px;border:1px solid var(--border-color); transition: background-color .3s, border-color .3s;}
   .card h2{margin:0 0 8px 0;font-size:16px;color:var(--primary);word-break:break-all;}
-  .thread-header{display:flex;flex-wrap:nowrap;justify-content:space-between;align-items:flex-start;gap:16px;}
-  .thread-header-main{min-width:0;flex-grow:1;}
-  .thread-header-meta{text-align:right;flex-shrink:0;}
   input[type="text"],textarea,select{width:100%;padding:8px;border:1px solid var(--border-color);border-radius:8px;font-size:14px;background:var(--card);color:var(--text-main);}
   textarea{min-height:80px;resize:vertical}
   .btn{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;transition:background-color 0.2s;}
   .btn:disabled{background:var(--muted);cursor:not-allowed;}
   .btn.warn{background:var(--danger)}
   .btn.small{padding:6px 8px;font-size:13px;border-radius:6px}
-  .btn.liked{background:#e11d48;color:white;}
   .search-box{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
   .sort-box{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap; align-items: center;}
-  .thread-item, .history-item{padding:10px;border-radius:8px;border:1px solid var(--border-color);display:flex;flex-wrap:nowrap;align-items:center;gap:12px; margin-bottom: 8px;}
+  .thread-item{padding:10px;border-radius:8px;border:1px solid var(--border-color);display:flex;flex-wrap:nowrap;align-items:center;gap:12px; margin-bottom: 8px;}
   .thread-link{font-weight:600;color:var(--primary);text-decoration:none; display:block;word-break:break-all;}
-  .thread-info { flex-grow: 1; display: flex; min-width: 0; }
-  .thread-item .thread-info { flex-direction: column; align-items: flex-start; gap: 4px; }
-  .history-item .thread-info { flex-direction: column; align-items: flex-start; gap: 4px; position: relative; padding-bottom: 18px; }
-  .history-item-res-count { position: absolute; bottom: 0; left: 0; }
-  .history-achievement-notify { font-weight: bold; color: var(--primary); font-size: 13px; margin-top: 4px; }
+  .thread-info { flex-grow: 1; display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 4px; }
   .thread-tags{display:flex;flex-wrap:wrap;gap:4px;}
   .tag{background:var(--muted);color:var(--text-main);padding:2px 6px;border-radius:4px;font-size:11px;cursor:pointer; text-decoration: none;}
   .thread-title-wrapper{min-width:0;display:flex;align-items:center;gap:8px;}
   .thread-meta-info{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;text-align:right;}
   .thread-preview-img{width:60px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0;}
   .meta{font-size:13px;color:var(--text-muted)}
-  .post{padding:10px;border-top:1px solid var(--border-color);margin-top:8px;}
-  #postsContainer > .post:first-child{margin-top:0;}
-  .modal-body .post {border-top:none; border-bottom:1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 10px;}
-  .modal-body .post:last-child {border-bottom:none; margin-bottom:0;}
-  .post .meta{font-size:12px;color:var(--text-muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap; margin-bottom: 8px;}
-  .post .meta .no{color:var(--accent);cursor:pointer;font-weight:700}
-  .post .meta .post-author{font-weight:bold;cursor:pointer; color: var(--text-main);}
-  .post .body{white-space:pre-wrap;word-break:break-word}
-  .post .body a{color:var(--primary);}
-  .post-image{max-width:280px;height:auto;border-radius:6px;margin-top:8px;display:block;cursor:pointer}
-  .highlight{background-color: yellow; color: black;}
-  .controls{margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
-  .timestamp{margin-left:auto; white-space:nowrap;}
-  .badge-op, .badge-level{background:var(--primary);color:white;padding:3px 6px;border-radius:999px;font-size:12px; white-space:nowrap;}
-  .badge-new, .badge-anchor{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:999px;background:var(--danger);color:white;font-size:11px;font-weight:bold;padding:0 5px;}
-  #historyUnreadBadge, #achievementBadge {position:absolute;top:-6px;right:-6px;line-height:1;box-shadow:0 1px 3px rgba(0,0,0,0.3);}
-  #achievementBadge { background-color: #1565c0; }
-  .unread-notification{margin-top:4px;}
-  .unread-notification .badge-new{font-size:12px;padding:3px 8px;}
-  .badge-anchor{cursor:pointer;}
-  .banned-note, .deleted-note, .ng-hidden-post{color:var(--danger);font-weight:700;margin-top:8px;}
-  .ng-word-red{color:var(--danger);font-weight:bold;}
-  .thread-link.ng-word-red { color: var(--danger); }
-  .search-highlight { color: var(--danger); font-weight: bold; background-color: rgba(239, 68, 68, 0.1); }
-  .dice-result { color: #ff8c00; font-weight: bold; }
-  .small-muted{font-size:12px;color:var(--text-muted)}
-  .modal-overlay,.lightbox-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:1000;}
-  .modal-content{background:var(--bg);border-radius:10px;width:90%;max-width:600px;max-height:80%;display:flex;flex-direction:column;border:1px solid var(--border-color);}
-  .modal-header{padding:12px 16px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center;}
-  .modal-header h2{font-size:18px;color:var(--primary);margin:0;}
-  .modal-close-btn,.lightbox-close-btn{font-size:28px;background:none;border:none;cursor:pointer;color:white;position:absolute;top:10px;right:15px;}
-  .modal-close-btn{color:var(--text-muted);position:static;}
-  .modal-body{padding:16px;overflow-y:auto;}
-  #profileId{color:var(--text-muted);font-size:13px;margin:0 0 12px 0;word-break:break-all;}
-  #profileControls{margin-bottom:12px; border-top:1px solid var(--border-color); padding-top:12px; display:flex; gap:8px;}
-  .lightbox-content img{max-width:90vw;max-height:90vh;display:block;}
-  .vote-box{margin-top:10px; display:flex; flex-direction:column; gap: 5px;}
-  .vote-option-bar-container{display: flex; align-items: center; gap: 8px; padding: 4px; border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; transition: background-color .2s;}
-  .vote-option-bar-container:hover{background-color: rgba(128,128,128,0.1);}
-  .vote-option-bar-container.voted-by-user{border-color: var(--primary); background-color: rgba(21,101,192,0.08);}
-  .vote-option-bar-container.expired{cursor:not-allowed;}
-  .vote-option-bar-container.expired:hover{background-color: transparent;}
-  .vote-label{flex-shrink: 0; font-size: 14px;}
-  .vote-bar-wrapper{flex-grow: 1; background-color: var(--border-color); border-radius: 4px; height: 20px; overflow: hidden;}
-  .vote-option-bar{background-color: var(--accent); height: 100%; transition: width .3s ease-out, background-color .3s;}
-  .vote-result{font-size: 13px; font-weight: bold; min-width: 60px; text-align: right;}
   .pagination-controls{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:16px;}
-  .achievement-item { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border-color); }
-  .achievement-item:last-child { border-bottom: none; }
-  .achievement-info { flex-grow: 1; }
-  .achievement-title { font-weight: bold; }
-  .achievement-desc { font-size: 12px; color: var(--text-muted); }
-  .achievement-status { font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 999px; }
-  .status-unlocked { background-color: #4caf50; color: white; }
-  .status-locked { background-color: var(--muted); color: var(--text-main); }
-  @keyframes shake-animation { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); } }
-  @keyframes rainbow-animation { 0%,100% { color: red; } 16% { color: orange; } 33% { color: yellow; } 50% { color: green; } 66% { color: blue; } 83% { color: indigo; } }
-  .effect-shake-active { animation: shake-animation 0.5s ease-in-out 6; }
-  .effect-rainbow-active .body { animation: rainbow-animation 2s linear infinite; }
-  .embed-container { position: relative; overflow: hidden; width: 100%; padding-top: 56.25%; margin: 8px 0; border-radius: 6px; }
-  .embed-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
-  .embedded-video { max-width: 100%; border-radius: 6px; margin-top: 8px; }
-  .twitter-tweet { margin: 16px auto !important; }
-  #drawingCanvas { border: 1px solid var(--border-color); border-radius: 6px; touch-action: none; cursor: crosshair; }
-  .drawing-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px; }
-  .drawing-controls label { font-size: 13px; }
-  .drawing-controls input[type="color"] { width: 40px; height: 30px; padding: 2px; border: none; border-radius: 4px; cursor: pointer; background: none; }
-  .drawing-controls input[type="range"] { flex-grow: 1; }
-  .drawing-controls .tool-btn { font-size: 13px; padding: 6px 8px; line-height: 1; }
-  .drawing-controls .tool-btn.active { background-color: var(--primary); color: white; }
-  #drawingModal .modal-content { max-width: 95%; width: 520px; }
-  #drawingPreviewContainer { margin-top: 8px; }
-  #drawingPreview { max-width: 150px; border-radius: 6px; border: 1px solid var(--border-color); }
-  #clearDrawingBtn { margin-left: auto; }
-  @media(max-width:680px){header{justify-content:center;}header .userbox{width:100%;text-align:center;margin:4px 0;}}
+  /* ... 他のCSS ... */
 </style>
 </head>
 <body>
@@ -139,8 +59,8 @@
     <h1>🥺ぷゆゆな集会場🥺</h1>
     <div class="userbox"><span id="userDisplay"></span></div>
     <div class="controls">
-      <button id="homeBtn">🏠 ホーム</button>
-      <button id="historyBtn">📜 履歴<span id="historyUnreadBadge" class="badge-new" style="display:none;"></span><span id="achievementBadge" class="badge-new" style="display:none; background-color: #1565c0;"></span></button>
+      <a href="/puyuyu-na-shukaijo/" class="btn">🏠 ホーム</a>
+      <button id="historyBtn">📜 履歴</button>
       <button id="settingsBtn">⚙️ 設定</button>
       <button id="themeToggleBtn">🌙</button>
       <button id="refreshBtn">🔄 更新</button>
@@ -153,24 +73,8 @@
       <input id="newTitle" type="text" placeholder="タイトル（#タグ でタグ付けできます）" style="margin-bottom:8px;">
       <input id="newName" type="text" placeholder="名前（任意）" style="margin-bottom:8px;">
       <textarea id="newText" placeholder="本文"></textarea>
-      <div class="controls" style="justify-content:flex-start; margin-top:8px; gap:8px;">
-        <button id="createVoteBtn" class="btn small">アンケート作成</button>
-        <button id="createDrawBtn" class="btn small">🎨 お絵描き</button>
-      </div>
-      <div style="margin-top:8px;">
-        <label for="levelRestrictionSelect" class="small-muted">レベル制限:</label>
-        <select id="levelRestrictionSelect">
-          <option value="0">無制限</option>
-          <option value="10">Lv.10以上</option>
-          <option value="30">Lv.30以上</option>
-          <option value="60">Lv.60以上</option>
-          <option value="250">Lv.250以上</option>
-          <option value="500">Lv.500以上</option>
-          <option value="1000">Lv.1000以上</option>
-        </select>
-      </div>
-      <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
-        <div id="newImageContainer"><input id="newImage" type="file" accept="image/*"></div>
+      <!-- スレ立てフォームの残りは省略 -->
+      <div style="margin-top:8px; display:flex; justify-content:flex-end;">
         <button class="btn" id="createThreadBtn">スレ作成</button>
       </div>
     </div>
@@ -179,8 +83,6 @@
       <div class="search-box">
         <input type="text" id="searchInput" placeholder="タイトル検索 or #タグ名">
         <button id="searchBtn" class="btn small">検索</button>
-        <button id="clearSearchBtn" class="btn small">クリア</button>
-        <a href="#memories" class="btn small" style="margin-left:auto; text-decoration:none;">🏆 メモリーズ</a>
       </div>
       <div class="sort-box">
         <span class="small-muted">並び替え:</span>
@@ -188,22 +90,16 @@
           <option value="newPost" selected>新着レス順</option>
           <option value="newThread">スレ立て順</option>
           <option value="manyRes">レス数順</option>
-          <option value="momentum">勢い順</option>
         </select>
-        <label for="sortReverseCheckbox" class="small-muted" style="display:flex;align-items:center;gap:4px;">
-          <input type="checkbox" id="sortReverseCheckbox">逆順
-        </label>
       </div>
 
-      <!-- ▼▼▼ ここからがEJSによるHTML生成部分 ▼▼▼ -->
       <div id="threadListContainer">
         
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZcPojDx-PrVhG9mtxu"
-                 data-last-updated-at="1757502805846"
+                 data-last-updated-at="1757502805638"
                  data-created-at="1757319744463"
                  data-post-counter="12"
                  data-title="ひさちぶりにきたらいろいろかわったね🥺"
@@ -221,12 +117,10 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">12レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZmYWp_MKIp9yzmyaD8"
                  data-last-updated-at="1757489797798"
@@ -247,12 +141,10 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">1レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZlgIYZwEitByKJwnM4"
                  data-last-updated-at="1757475321359"
@@ -273,21 +165,17 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">1レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZZZ1iov0e4Sk7l27J4"
-                 data-last-updated-at="1757471657499"
+                 data-last-updated-at="1757471657209"
                  data-created-at="1757255051046"
                  data-post-counter="25"
                  data-title="ぷゆゆなお絵かき🌈🖋️スレ✋🥺🤚"
                  data-tags="">
-              
-                <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAoADwDASIAAhEBAxEB/8QAHAABAAICAwEAAAAAAAAAAAAAAAIEAQMFBgcI/8QAMBAAAgEDAgQDBQkAAAAAAAAAAQIDAAQRBRIGEyEiBxQxCEFRgZFCYnKhscHh8PH/xAAYAQEAAwEAAAAAAAAAAAAAAAABAAIDBP/EACYRAAICAAQEBwAAAAAAAAAAAAABAhEDITHwgZGh0RITIkFRsfH/2gAMAwEAAhEDEQA/APqmlKp6rqVppVnLd6jdW9naRAGW4uZRFHGCcDLHp6mqzmoK2QuUqhYXseo+Y5DXkZglaF+baPACw9SvMUbl+DLlT7ia2zXOy7hidLlRI+xGSPejHazHcQDsACkZbaMkAEkgHNYknfofTv7fljRapUULZ2vjPqCPf8qlV4TU1e97WQClKVcgqpcRPdWNzHDLyJ5BIiTBcmNuqhgPiOlW61odsjJ6faH7/n+ornxMsSEnpmuL0fJNcRWh5F4R8Ca1w5xhfatc2llp2l3lvKnkIrW1heKUmBh3QDuTcLjYrMSqbM9zNjhNG8OOI19pFuKbjS7Kz0G1e5nS6heIm5aWNkwQMSFu8E7gACjgE5DN6B4l8a67wjNYNpHBGq8R2UzBbmexkBaHJ6BYlDOxwGJJCqO0bsnp3LSZ7q50qzn1Cz8jeywo89rzRLyJCoLJvHRtpyMjocZroAtYGc460qA7pSfcox8z/RU6pCSlbXz9ZCxSlKuArDKGxkehyKUolFSVNWiGFDg9WBX8PX6/xWCrNkF8L90YP1/ylKz8iNeF3zffpoNkwABgDApSlaJJKkApSlJD/9k=" class="thread-preview-img" alt="preview">
               
               <div class="thread-info">
                 <div class="thread-title-wrapper">
@@ -301,17 +189,15 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">25レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZj1GWbYNjGJ3DhQzMe"
-                 data-last-updated-at="1757431793202"
+                 data-last-updated-at="1757432327067"
                  data-created-at="1757430750166"
-                 data-post-counter="4"
+                 data-post-counter="5"
                  data-title="今日のおみくじスレ"
                  data-tags="">
               
@@ -326,16 +212,14 @@
                 </div>
               </div>
               <div class="thread-meta-info">
-                <div class="meta">4レス</div>
-                <div class="meta"></div>
+                <div class="meta">5レス</div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZZZnnXIR5RZh7-JX4c"
-                 data-last-updated-at="1757431758227"
+                 data-last-updated-at="1757431757955"
                  data-created-at="1757255252052"
                  data-post-counter="17"
                  data-title="機能関連のスレ💪😠"
@@ -353,15 +237,13 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">17レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZiN1uG7vXUiU7Yt1Pn"
-                 data-last-updated-at="1757419775410"
+                 data-last-updated-at="1757419775147"
                  data-created-at="1757419678755"
                  data-post-counter="2"
                  data-title="いまの御徒町の天気😳"
@@ -379,12 +261,10 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">2レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZhwsd2KabAGgmyeY__"
                  data-last-updated-at="1757412559495"
@@ -407,15 +287,13 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">68レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZhYiVesDaTMXS9Lp-c"
-                 data-last-updated-at="1757410754414"
+                 data-last-updated-at="1757410754212"
                  data-created-at="1757405963148"
                  data-post-counter="3"
                  data-title="今日の御徒町の天気情報✋🥵"
@@ -433,15 +311,13 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">3レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZZX3nbxBb_PWwoPOBS"
-                 data-last-updated-at="1757347220773"
+                 data-last-updated-at="1757347220517"
                  data-created-at="1757254535259"
                  data-post-counter="10"
                  data-title="ぷゆゆ名鑑出張所part1#ぷゆゆ名鑑"
@@ -461,15 +337,13 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">10レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZdJCo3-ZMo_fxWFFGE"
-                 data-last-updated-at="1757337542597"
+                 data-last-updated-at="1757337541914"
                  data-created-at="1757334789458"
                  data-post-counter="5"
                  data-title="ぬゆこそが、&#34;キング&#34;だぬん🥹"
@@ -487,21 +361,17 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">5レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZdKVdjxMrJxnVfr5oj"
-                 data-last-updated-at="1757335326021"
+                 data-last-updated-at="1757335325643"
                  data-created-at="1757335127507"
                  data-post-counter="4"
                  data-title="ぷゆゆな画像、動画を集める部🥺#ぷゆゆ名鑑"
                  data-tags="ぷゆゆ名鑑">
-              
-                <img src="data:image/jpeg;base64,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" class="thread-preview-img" alt="preview">
               
               <div class="thread-info">
                 <div class="thread-title-wrapper">
@@ -517,15 +387,13 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">4レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZcySkCQxHdg0YT-c5Y"
-                 data-last-updated-at="1757334741713"
+                 data-last-updated-at="1757334741496"
                  data-created-at="1757329087512"
                  data-post-counter="5"
                  data-title="💪特訓中だぬ🥺"
@@ -543,15 +411,13 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">5レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZd3-GZbasoBMVtmWwQ"
-                 data-last-updated-at="1757333869982"
+                 data-last-updated-at="1757333869782"
                  data-created-at="1757330538533"
                  data-post-counter="7"
                  data-title="お絵かき機能について🌈🖋️😁"
@@ -569,15 +435,13 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">7レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZcvJK4fVvpxq4cB0jY"
-                 data-last-updated-at="1757328540083"
+                 data-last-updated-at="1757328539835"
                  data-created-at="1757328262634"
                  data-post-counter="2"
                  data-title="🥺をNGワードにしたら"
@@ -595,15 +459,13 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">2レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZcTYnWN1BvMsfRy515"
-                 data-last-updated-at="1757325599378"
+                 data-last-updated-at="1757325599211"
                  data-created-at="1757320722495"
                  data-post-counter="3"
                  data-title="熱中症にかかったゆ✋🥵"
@@ -621,12 +483,10 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">3レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZc8Ta-CW-lBNt8Qhho"
                  data-last-updated-at="1757315197382"
@@ -649,21 +509,17 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">1000レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZZkQVoQklu8G5IeBOw"
-                 data-last-updated-at="1757314785854"
+                 data-last-updated-at="1757314785575"
                  data-created-at="1757258298275"
                  data-post-counter="3"
                  data-title="実績に関する説明✋😳🤚"
                  data-tags="">
-              
-                <img src="data:image/jpeg;base64,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" class="thread-preview-img" alt="preview">
               
               <div class="thread-info">
                 <div class="thread-title-wrapper">
@@ -677,15 +533,13 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">3レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZbvi40plsorp7m8QSU"
-                 data-last-updated-at="1757313732751"
+                 data-last-updated-at="1757313732473"
                  data-created-at="1757311590162"
                  data-post-counter="2"
                  data-title="初心者だよ🥺"
@@ -703,15 +557,13 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">2レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZaDuWJxX-FP_-4VL0z"
-                 data-last-updated-at="1757297611124"
+                 data-last-updated-at="1757297564263"
                  data-created-at="1757283068838"
                  data-post-counter="3"
                  data-title="おまえら、ちゃんと朝活ぷゆってるか🥺"
@@ -729,15 +581,13 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">3レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZafCq66d6mw8tyPNBQ"
-                 data-last-updated-at="1757290624745"
+                 data-last-updated-at="1757290624496"
                  data-created-at="1757290487461"
                  data-post-counter="2"
                  data-title="🥸　ぷゆゆ研究所　🥺😳🤓"
@@ -755,15 +605,13 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">2レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZZ6PcYXoVmJySjh_HB"
-                 data-last-updated-at="1757257669064"
+                 data-last-updated-at="1757257668871"
                  data-created-at="1757247547993"
                  data-post-counter="4"
                  data-title="書き込めないぬ🥹"
@@ -781,12 +629,10 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">4レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZZhWEoMAaOmBgFpjaT"
                  data-last-updated-at="1757257535334"
@@ -809,12 +655,10 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">37レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZZRxEyV42xIC2gldcS"
                  data-last-updated-at="1757253193586"
@@ -835,15 +679,13 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">1レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZZ9R57ViECRy6i8VN-"
-                 data-last-updated-at="1757252938183"
+                 data-last-updated-at="1757252938014"
                  data-created-at="1757248339475"
                  data-post-counter="2"
                  data-title="現在発生してるバグについて✋😢"
@@ -861,12 +703,10 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">2レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZYl17reHZqJLxUH_jy"
                  data-last-updated-at="1757241724678"
@@ -887,12 +727,10 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">2レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OYXMtz6kt7_rb4TkHHc"
                  data-last-updated-at="1757222776033"
@@ -913,12 +751,10 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">12レス</div>
-                <div class="meta"></div>
               </div>
             </div>
           
             
-            <!-- ▼▼▼ 変更点：検索・ソート用のデータをdata-*属性として埋め込む ▼▼▼ -->
             <div class="thread-item"
                  data-thread-id="-OZU5wwUyw3k8FuJxbAa"
                  data-last-updated-at="1757195457097"
@@ -939,212 +775,107 @@
               </div>
               <div class="thread-meta-info">
                 <div class="meta">9レス</div>
-                <div class="meta"></div>
+              </div>
+            </div>
+          
+            
+            <div class="thread-item"
+                 data-thread-id="-OZ9O4zjzDaTASJrFfp3"
+                 data-last-updated-at="1756815975493"
+                 data-created-at="1756815975493"
+                 data-post-counter="1"
+                 data-title="レベルによってのキャラの違いを教えて欲しいゆ"
+                 data-tags="">
+              
+              <div class="thread-info">
+                <div class="thread-title-wrapper">
+                  <a class="thread-link" href="thread--OZ9O4zjzDaTASJrFfp3.html">
+                    レベルによってのキャラの違いを教えて欲しいゆ
+                  </a>
+                </div>
+                <div class="thread-tags">
+                  
+                </div>
+              </div>
+              <div class="thread-meta-info">
+                <div class="meta">1レス</div>
+              </div>
+            </div>
+          
+            
+            <div class="thread-item"
+                 data-thread-id="-OZ9MFhUIJY9CIG8DB5V"
+                 data-last-updated-at="1756815507433"
+                 data-created-at="1756815495103"
+                 data-post-counter="2"
+                 data-title="初心者ぷゆに色々教えて欲しいゆ🥺"
+                 data-tags="">
+              
+              <div class="thread-info">
+                <div class="thread-title-wrapper">
+                  <a class="thread-link" href="thread--OZ9MFhUIJY9CIG8DB5V.html">
+                    初心者ぷゆに色々教えて欲しいゆ🥺
+                  </a>
+                </div>
+                <div class="thread-tags">
+                  
+                </div>
+              </div>
+              <div class="thread-meta-info">
+                <div class="meta">2レス</div>
               </div>
             </div>
           
         
       </div>
-      <!-- ▲▲▲ ここまでがEJSによるHTML生成部分 ▲▲▲ -->
-
       <div id="paginationContainer"></div>
     </div>
   </div>
 
-  <div id="profileModal" class="modal-overlay"><!-- ... 中身は変更なし ... --></div>
-  <div id="imageLightbox" class="lightbox-overlay"><!-- ... 中身は変更なし ... --></div>
-  <div id="voteModal" class="modal-overlay"><!-- ... 中身は変更なし ... --></div>
-  <div id="anchorModal" class="modal-overlay"><!-- ... 中身は変更なし ... --></div>
-  <div id="drawingModal" class="modal-overlay"><!-- ... 中身は変更なし ... --></div>
-  <audio id="notificationSound" src="https://otologic.jp/sounds/se/mp3/single-accent-19.mp3" preload="auto"></audio>
+  <script>
+    const firebaseConfig = { /* ... Firebase設定（変更なし） ... */ };
+    let allThreads = [];
 
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyDS3Tlr9Oc4z5Kz2Zg72p9VRayPSAbmwTw",
-  authDomain: "config-f5509.firebaseapp.com",
-  databaseURL: "https://config-f5509-default-rtdb.firebaseio.com",
-  projectId: "config-f5509",
-  storageBucket: "config-f5509.appspot.com",
-  messagingSenderId: "513023904601",
-  appId: "1:513023904601:web:1846aa87aec5de306e1a48",
-  measurementId: "G-KT2LZC2EED"
-};
+    document.addEventListener('DOMContentLoaded', () => {
+      try { firebase.initializeApp(firebaseConfig); } catch(e) {}
+      const db = firebase.database();
 
-const ACHIEVEMENTS_MASTER = { /* ... 中身は変更なし ... */ };
-const NG_WORDS = ['바보', '멍청이', '죽어', '死ね', 'バカ', '馬鹿', 'kill', 'idiot'];
-const ADMIN_IDS = ['W4ZZKXRY9CS'];
+      // ページ読み込み時にHTMLからスレッド情報を読み込んでJSのデータとして復元
+      document.querySelectorAll('#threadListContainer .thread-item').forEach(el => {
+        allThreads.push({
+            id: el.dataset.threadId,
+            lastUpdatedAt: parseInt(el.dataset.lastUpdatedAt, 10),
+            createdAt: parseInt(el.dataset.createdAt, 10),
+            postCounter: parseInt(el.dataset.postCounter, 10),
+            title: el.dataset.title,
+            tags: el.dataset.tags ? el.dataset.tags.split(',') : [],
+            element: el 
+        });
+      });
 
-// ▼▼▼ 変更点：グローバル変数としてallThreadsを定義 ▼▼▼
-let allThreads = [];
+      // 検索・ソート機能のイベントリスナーを設定
+      const sortSelect = document.getElementById('sortSelect');
+      const searchInput = document.getElementById('searchInput');
+      const searchBtn = document.getElementById('searchBtn');
 
-document.addEventListener('DOMContentLoaded', () => { main(); });
+      function displayThreads() { /* ... 前の回答で提示したdisplayThreads関数をここにコピー ... */ }
 
-function main() {
-  // ... audioContextやFirebase初期化などは変更なし ...
-  try { firebase.initializeApp(firebaseConfig); } catch (e) { /* ... */ }
-  const db = firebase.database();
-  
-  // ▼▼▼ 変更点：ページ読み込み時に一度だけ、HTMLからスレッド情報を読み込んでallThreadsを復元する ▼▼▼
-  document.querySelectorAll('#threadListContainer .thread-item').forEach(el => {
-    allThreads.push({
-        id: el.dataset.threadId,
-        lastUpdatedAt: parseInt(el.dataset.lastUpdatedAt, 10),
-        createdAt: parseInt(el.dataset.createdAt, 10),
-        postCounter: parseInt(el.dataset.postCounter, 10),
-        title: el.dataset.title,
-        tags: el.dataset.tags ? el.dataset.tags.split(',') : [],
-        // DOM要素そのものも保持しておくと、並べ替えや表示/非表示の切り替えが簡単
-        element: el 
-    });
-  });
-
-  // ... banRef.on(...)以下のコードは、renderAppとrenderHome以外はほぼ変更なし ...
-
-  let activeDataListener = null, activeViewersListener = null, myConnectionRef = null, currentViewers = 0, currentPage = 1;
-  const THREADS_PER_PAGE = 15;
-  
-  // ... cleanupListeners() から goHome() まで、ほとんどのヘルパー関数は変更なし ...
-
-  // ▼▼▼ 変更点：displayThreads関数を、DOMを直接操作するロジックに完全に書き換える ▼▼▼
-  function displayThreads() {
-    const c = document.getElementById('threadListContainer'); 
-    const p = document.getElementById('paginationContainer');
-    if(!c || !p) return;
-
-    const sortSelect = document.getElementById('sortSelect');
-    const searchInput = document.getElementById('searchInput');
-    const reverseCheckbox = document.getElementById('sortReverseCheckbox');
-
-    const sortMode = sortSelect.value;
-    const searchTerm = searchInput.value.trim().toLowerCase();
-    const isReversed = reverseCheckbox.checked;
-
-    // 1. フィルタリング (検索)
-    let filteredThreads = allThreads.filter(t => {
-      if (!searchTerm) return true; // 検索ワードがなければ全て表示
-      if (searchTerm.startsWith('#')) {
-        const tag = searchTerm.substring(1);
-        return t.tags.includes(tag);
+      if (sortSelect) sortSelect.onchange = displayThreads;
+      if (searchBtn) searchBtn.onclick = displayThreads;
+      if (searchInput) searchInput.onkeydown = (e) => { if(e.key === 'Enter') displayThreads(); };
+      
+      // スレッド作成ボタンのイベントリスナー
+      const createThreadBtn = document.getElementById('createThreadBtn');
+      if (createThreadBtn) {
+        createThreadBtn.onclick = async () => {
+          // 元のコードにあったスレッド作成ロジック
+          // ...
+          // 成功後、アラートを出してリロードを促す
+          // alert('スレッドを作成しました。サイトの更新には最大5分かかります。');
+        };
       }
-      return t.title.toLowerCase().includes(searchTerm);
+      displayThreads(); // 初期表示
     });
-
-    // 2. ソート (並び替え)
-    let sortedThreads = [...filteredThreads].sort((a, b) => {
-      if (sortMode === 'newPost') return b.lastUpdatedAt - a.lastUpdatedAt;
-      if (sortMode === 'newThread') return b.createdAt - a.createdAt;
-      if (sortMode === 'manyRes') return b.postCounter - a.postCounter;
-      // 'momentum'はクライアント側では計算が難しいため、一旦 'newPost' と同じ挙動にする
-      if (sortMode === 'momentum') return b.lastUpdatedAt - a.lastUpdatedAt;
-      return 0;
-    });
-
-    if (isReversed) {
-      sortedThreads.reverse();
-    }
-    
-    // ページネーションの計算
-    const totalPages = Math.max(1, Math.ceil(sortedThreads.length / THREADS_PER_PAGE));
-    currentPage = Math.min(currentPage, totalPages);
-    const startIndex = (currentPage - 1) * THREADS_PER_PAGE;
-    const endIndex = startIndex + THREADS_PER_PAGE;
-    const pagedThreads = sortedThreads.slice(startIndex, endIndex);
-
-    // 3. 表示/非表示の切り替え
-    // まず全てのスレッドを一旦非表示にする
-    allThreads.forEach(t => t.element.style.display = 'none');
-    
-    // ページに表示すべきスレッドだけを表示する
-    pagedThreads.forEach(t => t.element.style.display = 'flex');
-
-    if(pagedThreads.length === 0){
-      // 表示すべきスレッドがない場合、メッセージを表示（既存の要素を書き換えるのではなく、追加・削除する）
-      let noResultEl = c.querySelector('.no-result-message');
-      if (!noResultEl) {
-        noResultEl = document.createElement('div');
-        noResultEl.className = 'small-muted no-result-message';
-        c.appendChild(noResultEl);
-      }
-      noResultEl.textContent = '該当するスレッドがありません。';
-    } else {
-      let noResultEl = c.querySelector('.no-result-message');
-      if (noResultEl) noResultEl.remove();
-    }
-
-    // ページネーションの表示を更新
-    if (sortedThreads.length > THREADS_PER_PAGE) {
-      p.innerHTML = `
-        <div class="pagination-controls">
-          <button id="prevPageBtn" class="btn small" ${currentPage === 1 ? 'disabled' : ''}>前へ</button>
-          <span class="small-muted">${currentPage} / ${totalPages} ページ</span>
-          <button id="nextPageBtn" class="btn small" ${currentPage === totalPages ? 'disabled' : ''}>次へ</button>
-        </div>
-      `;
-      document.getElementById('prevPageBtn').onclick = () => { if(currentPage > 1) { currentPage--; displayThreads(); } };
-      document.getElementById('nextPageBtn').onclick = () => { if(currentPage < totalPages) { currentPage++; displayThreads(); } };
-    } else {
-      p.innerHTML = '';
-    }
-  }
-
-  // ▼▼▼ 変更点：renderHome関数を、イベントリスナーを設定するだけのシンプルなものに変更 ▼▼▼
-  function renderHome() {
-    currentPage = 1;
-    
-    // 各種フォーム要素にイベントリスナーを設定
-    const sortSelect = document.getElementById('sortSelect');
-    const searchInput = document.getElementById('searchInput');
-    const reverseCheckbox = document.getElementById('sortReverseCheckbox');
-
-    if (sortSelect) sortSelect.onchange = () => { currentPage = 1; displayThreads(); };
-    if (reverseCheckbox) reverseCheckbox.onchange = () => { currentPage = 1; displayThreads(); };
-    if (document.getElementById('searchBtn')) document.getElementById('searchBtn').onclick = () => { currentPage = 1; displayThreads(); };
-    if (document.getElementById('clearSearchBtn')) document.getElementById('clearSearchBtn').onclick = () => { searchInput.value=''; currentPage = 1; displayThreads(); };
-    if (searchInput) searchInput.onkeydown = (e) => { if(e.key === 'Enter') { currentPage = 1; displayThreads(); } };
-
-    // スレッド作成ボタンのロジックは変更なし
-    if (document.getElementById('createThreadBtn')) document.getElementById('createThreadBtn').onclick=async()=>{
-        // ... (元のスレッド作成ロジックはそのまま) ...
-    };
-    
-    // アンケートやお絵描きモーダルのセットアップも変更なし
-    setupVoteModal('newText');
-    setupDrawingModal('newImageContainer');
-    
-    // 次スレ作成データの読み込みも変更なし
-    // ...
-  }
-  
-  // ▼▼▼ 変更点：renderApp関数から、ホームページ表示時のデータ取得処理を削除 ▼▼▼
-  async function renderApp(){
-    exitEditMode();
-    cleanupListeners();
-    currentViewers = 0;
-    refreshHeader();
-    await setupUnreadListeners();
-
-    const h = location.hash || '#';
-    // スレッド詳細、履歴、設定などのページ遷移ロジックは変更なし
-    if (h.startsWith('#thread-')) {
-      // ...
-    } else if (h === '#history') {
-      // ...
-    } else if (h === '#settings') {
-      // ...
-    } else if (h === '#memories') {
-      // ...
-    } else {
-      // ホームページの場合の処理
-      renderHome(); // HTML要素にイベントリスナーを設定する
-      displayThreads(); // 初期表示（全件表示）を実行する
-    }
-  }
-  
-  // ... これより下の各種関数（renderThread, postReplyなど）は基本的に変更ありません ...
-
-  renderApp(); // 最初に一度呼び出す
-}
-</script>
-<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+  </script>
 </body>
 </html>

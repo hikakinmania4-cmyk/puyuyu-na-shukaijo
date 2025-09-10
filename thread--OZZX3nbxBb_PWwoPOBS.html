@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale-1" />
+  <!-- ▼▼▼ タイトルを動的に設定 ▼▼▼ -->
+  <title>ぷゆゆ名鑑出張所part1#ぷゆゆ名鑑 - 🥺ぷゆゆな集会場🥺</title>
+  <meta name="description" content="ぷゆゆ🥺好きがこぞって集まると噂の掲示板のスレッドです。" />
+
+  <!-- OGPタグもスレッド情報に合わせて動的に設定 -->
+  <meta property="og:title" content="ぷゆゆ名鑑出張所part1#ぷゆゆ名鑑" />
+  <meta property="og:description" content="ぷゆゆ🥺好きがこぞって集まると噂の掲示板" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://hikakinmania4-cmyk.github.io/puyuyu-na-shukaijo/thread--OZZX3nbxBb_PWwoPOBS.html" />
+  <meta property="og:image" content="https://i.ibb.co/93Stdh8x/96a86591b41f.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  
+  <!-- ▼▼▼ 元のCSSをここに全て貼り付けます ▼▼▼ -->
+  <style>
+    :root{--primary:#1565c0;--accent:#0288d1;--bg:#f5f7fb;--card:#ffffff;--muted:#6b7280;--danger:#ef4444;--text-main:#111827;--text-muted:#6b7280;--border-color:#e5e7eb;}
+    .dark-mode{--primary:#60a5fa;--accent:#38bdf8;--bg:#111827;--card:#1f2937;--muted:#9ca3af;--text-main:#f9fafb;--text-muted:#9ca3af;--border-color:#374151;}
+    *{box-sizing:border-box}
+    body{font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Hiragin- Kaku Gothic ProN",Meiryo,sans-serif;background:var(--bg);margin:0;padding:0;color:var(--text-main);transition:background-color .3s,color .3s;}
+    header{background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+    header h1{margin:0;font-size:18px;flex-grow:1;word-break:break-all;}
+    header .controls{display:flex;gap:8px;align-items:center;}
+    header .userbox{font-size:13px; margin-left: auto; text-align:right;}
+    header button, header a.btn { text-decoration: none; background:rgba(255,255,255,0.14);border:none;color:#fff;padding:6px 10px;border-radius:6px;cursor:pointer; display: inline-flex; align-items: center; gap: 6px; position:relative;}
+    header button:hover, header a.btn:hover {background:rgba(255,255,255,0.22)}
+    .wrap{max-width:1000px;margin:16px auto;padding:12px}
+    .card{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 2px 6px rgba(2,6,23,0.06);margin-bottom:12px;border:1px solid var(--border-color); transition: background-color .3s, border-color .3s;}
+    .card h2{margin:0 0 8px 0;font-size:16px;color:var(--primary);word-break:break-all;}
+    .thread-header{display:flex;flex-wrap:nowrap;justify-content:space-between;align-items:flex-start;gap:16px;}
+    .thread-header-main{min-width:0;flex-grow:1;}
+    .thread-header-meta{text-align:right;flex-shrink:0;}
+    input[type="text"],textarea,select{width:100%;padding:8px;border:1px solid var(--border-color);border-radius:8px;font-size:14px;background:var(--card);color:var(--text-main);}
+    textarea{min-height:80px;resize:vertical}
+    .btn{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;transition:background-color 0.2s;}
+    .btn:disabled{background:var(--muted);cursor:not-allowed;}
+    .btn.warn{background:var(--danger)}
+    .btn.small{padding:6px 8px;font-size:13px;border-radius:6px}
+    .btn.liked{background:#e11d48;color:white;}
+    .post{padding:10px;border-top:1px solid var(--border-color);margin-top:8px;}
+    #postsContainer > .post:first-child{margin-top:0; border-top: none;}
+    .post .meta{font-size:12px;color:var(--text-muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap; margin-bottom: 8px;}
+    .post .meta .no{color:var(--accent);cursor:pointer;font-weight:700}
+    .post .meta .post-author{font-weight:bold;cursor:pointer; color: var(--text-main);}
+    .post .body{white-space:pre-wrap;word-break:break-word}
+    .post .body a{color:var(--primary);}
+    .post-image{max-width:280px;height:auto;border-radius:6px;margin-top:8px;display:block;cursor:pointer}
+    .controls{margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+    .timestamp{margin-left:auto; white-space:nowrap;}
+    .badge-op, .badge-level{background:var(--primary);color:white;padding:3px 6px;border-radius:999px;font-size:12px; white-space:nowrap;}
+    .banned-note, .deleted-note {color:var(--danger);font-weight:700;margin-top:8px;}
+    /* ... 他にも必要なCSSがあればここに追加 ... */
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🥺ぷゆゆな集会場🥺</h1>
+    <div class="userbox"><span id="userDisplay"></span></div>
+    <div class="controls">
+      <!-- ▼▼▼ リンク先をルートのindex.html（またはリポジトリ名）に変更 ▼▼▼ -->
+      <a href="/puyuyu-na-shukaijo/" class="btn">🏠 ホーム</a>
+      <button id="historyBtn" disabled>📜 履歴</button>
+      <button id="settingsBtn" disabled>⚙️ 設定</button>
+      <button id="themeToggleBtn">🌙</button>
+      <button id="refreshBtn">🔄 更新</button>
+    </div>
+  </header>
+
+  <div class="wrap" id="app">
+    <div class="card">
+      <div class="thread-header">
+        <div class="thread-header-main"><h2>ぷゆゆ名鑑出張所part1#ぷゆゆ名鑑</h2></div>
+        <div class="thread-header-meta">
+            <div class="small-muted">作成: 9/7/2025, 2:15:35 PM</div>
+        </div>
+      </div>
+      <!-- ▼▼▼ ここからが投稿表示エリア ▼▼▼ -->
+      <div id="postsContainer">
+        
+          <div class="post" data-post-id="-OZZX3nbxBb_PWwoPOBS" data-author-id="W4ZZKXRY9CS">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="1">No.1</span>
+              <b class="post-author" data-action="show-profile" data-name="🥺ぷゆゆ🥺">🥺ぷゆゆ🥺</b>
+              
+                <span class="badge-op">主</span>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">復刻版<br>このスレは『ぷゆゆ🥺』について<br>語り合い、新しいぷゆゆ🥺を見つけたり、名作ぷゆゆ🥺スレを貼ったりする図鑑です。<br>便利なリンク集<br>【忍法】忍者の里ぷゆゆ部8<br>https://open.open2ch.net/test/read.cgi/sato/1748834650/l50<br>絵文字キッチン<br>https://emoji.supply/kitchen/<br>ぷゆゆAAA保管計画<br>https://open.open2ch.net/test/read.cgi/1659504548/1748434493/<br>避難所<br>https://open.open2ch.net/test/read.cgi/1600913479/1748225621/13-<br>本家・ぷゆゆ図鑑<br>https://hayabusa.open2ch.net/test/read.cgi/livejupiter/1755926882/l50</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/7 14:15:35</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZZXId3tA8vKjYGh_TE" data-author-id="W4ZZKXRY9CS">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="2">No.2</span>
+              <b class="post-author" data-action="show-profile" data-name="🥺ぷゆゆ🥺">🥺ぷゆゆ🥺</b>
+              
+                <span class="badge-op">主</span>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">ぷゆゆ一覧🥺<br><br>🥺ぷゆゆ<br>🥹うゆゆ<br>〄一筆書きぷゆゆ<br>😳ぺゆゆ（かわいいぼくちんぷゆゆ　偽物）<br>🤢げゆゆ<br>😱およよ<br>🤓チー牛（チー君、チーちゃん、チー坊）<br>🫣ぼくちゃん<br>🤪死体ぷゆゆ<br>😤えへへ<br>😭びえん<br>🤥ゆめちゃん<br>🥶カチコチくん<br>🥵ホッティ<br>🤡マルク<br>🤕天才ぷゆゆ<br>👴まつもとさん<br>👵まつもとさんの奥さん</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/7 14:16:36</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZZXOEKINtyJ5RFAGbR" data-author-id="W4ZZKXRY9CS">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="3">No.3</span>
+              <b class="post-author" data-action="show-profile" data-name="🥺ぷゆゆ🥺">🥺ぷゆゆ🥺</b>
+              
+                <span class="badge-op">主</span>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">👴🏿破壊神ハマタ<br>👩‍🦲悟<br>☺️ゴシゴシおじさん（ゴシおじ）<br>☹️うゆゆ<br>☹偽うゆゆ<br>😪すやや<br>🙃落ちていくぼくちん<br>☢️ホラーぷゆゆ<br>☣️激おこぷゆぷゆ丸<br>🟡カオナシ<br>⭕リングくん<br>◎ホワイトリングくん<br>👶🏽サツガイくん（兄）<br>👶サツガイくん（弟）</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/7 14:16:58</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZZXT2DkAuGXB6BsQvT" data-author-id="W4ZZKXRY9CS">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="4">No.4</span>
+              <b class="post-author" data-action="show-profile" data-name="🥺ぷゆゆ🥺">🥺ぷゆゆ🥺</b>
+              
+                <span class="badge-op">主</span>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">(´◕‸◕`)ジェネリックぷゆん（偽物）<br>(´◔‸◔`)ジェネリックぷゆゆ（本物）<br>(´◕‸◔`)スーパージェネリックぷゆゆ<br>(´ʘ‸ʘ`)ジェネリックぺゆゆ<br>(´・⊇・`)ジェネリックゆめちゃん<br><br>●ダークサイドぷゆゆ<br>◯ライトニングぷゆゆ<br>🌝ムジュラぷゆゆ<br>🌚ムジュラぷゆの裏のやつ<br>👤犯人ぷゆゆ<br>♌呪われたぷゆゆ（兄）<br>⭐星になったぼくちん<br>🟨轢かれたぷゆゆ<br>▓けつばんぷゆゆ<br>🍘ぷゆゆせんべい<br>🍪クッキーぷゆゆ<br>🍋レモンぷゆゆ<br>🦲恥ずかしがって姿見せないぷゆゆ<br>🪙コインぷゆゆ<br>🏀🥎球兄弟<br>🌻花になったぷゆゆ<br>⦿細胞ぷゆゆ<br>🎃殺人鬼<br>🕢クロックぷゆゆ<br>📀ぷゆゆ2099</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/7 14:17:18</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZZXammCTc2qq8iCEdb" data-author-id="W4ZZKXRY9CS">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="5">No.5</span>
+              <b class="post-author" data-action="show-profile" data-name="🥺ぷゆゆ🥺">🥺ぷゆゆ🥺</b>
+              
+                <span class="badge-op">主</span>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">👑　　　　　　　　　　　　　<br>🥺御徒町の王・キングぷゆゆ　<br>👑<br>🥹クイーンぷゆゆ<br>🔴プユレンジャーレッド<br>🟠プユレンジャーオレンジ<br>🟡プユレンジャーイエロー<br>🟢プユレンジャーグリーン<br>🔵プユレンジャーブルー<br>🟣プユレンジャーパープル<br>🫓傷のぷゆゆ<br>🏐ミイラぷゆゆ<br>🔮ミステリアスぷゆゆ<br>♋呪われたぷゆゆ（弟）<br>🇵🇼封印されたぷゆゆ<br>🌐骨組みぷゆゆ<br>🍥鳴門ぷゆゆ<br>🔘五億年ボタンぷゆゆ<br>🪀ヨーヨー・プユ<br>🧿"眼"のぷゆゆ（ニャザールボンジューぷゆゆ）</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/7 14:17:54</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZZXfL7CNPM_w4Y7Inp" data-author-id="W4ZZKXRY9CS">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="6">No.6</span>
+              <b class="post-author" data-action="show-profile" data-name="🥺ぷゆゆ🥺">🥺ぷゆゆ🥺</b>
+              
+                <span class="badge-op">主</span>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">▲■黒ぷゆゆ兵士<br>❍3Dぷゆゆ<br>🟨轢かれたぷゆゆ<br>👤犯人ぷゆゆ<br>🧭コンパスぷゆゆ<br>🌻花ににゃったぷゆゆ<br>🎑ぷゆムーン<br>🅾️ぷゆゆゼロ<br>🚸ロールシャッハぷゆゆ<br>©️アンノーンぷゆC<br>®️アンノーンぷゆR<br>⚫️黒霧ぷゆゆ<br>🙂太郎<br>👨トランスぷゆゆ（雄）<br>👩トランスぷゆゆ（雌）<br>⬛️検閲済みぷゆゆ<br>🤐封じられたぷゆゆ<br>😶誰？<br>🧐博士ぷゆゆ<br>🥸ぷゆゆ博士<br>😡おんたこ民</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/7 14:18:13</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZZY06yHmekKN6qqWeB" data-author-id="W4ZZKXRY9CS">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="7">No.7</span>
+              <b class="post-author" data-action="show-profile" data-name="🥺ぷゆゆ🥺">🥺ぷゆゆ🥺</b>
+              
+                <span class="badge-op">主</span>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">スレで誕生したぷゆゆたち（一部抜粋）<br>🛞タイヤぷゆゆ<br>。スモールぷゆゆ<br>.ミニぷゆゆ<br>　透明ぷゆゆ<br>☯️陰陽師ぷゆゆ<br>🥞パンケーキぷゆゆ<br>╭ᥬ🥺᭄╮クリーチャーぷゆゆ<br>👶🏿サツガイくん<br>Ⓜ️洗脳されたぷゆゆ<br>☸️車輪ぷゆ<br>⚙️歯車ぷゆ<br>♉触覚がはえたぷゆゆ<br>🍭棒つき一筆書のぼくちん<br>🤬朴ちん（ぱくちん）<br>💡ひらめいたぷゆゆ<br>🎃ハロウィンぷゆゆ<br>📛サイクロップスぷゆゆ（フェニックス・フォース）<br>🥥切られて腐ったぷゆゆ<br>🧶真っ二つのぷゆゆ<br>㊙️秘密のぷゆゆ<br>(´ 癶‸ 癶 `) お嬢様ぷゆゆ<br>�　ブラウザ環境によっては見えないぷゆゆ<br>👉🥺👈、ゲイなキチガイさん<br>💪🥹🫵 は◯(バ◯ーくん)<br>📍 自○記号さん(尿道に突き刺すやつ)</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/7 14:19:42</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZZYFrrBcXNgWESfXtf" data-author-id="W4ZZKXRY9CS">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="8">No.8</span>
+              <b class="post-author" data-action="show-profile" data-name="🥺ぷゆゆ🥺">🥺ぷゆゆ🥺</b>
+              
+                <span class="badge-op">主</span>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">🐴　　　　　　　　　　　　　<br>🥺ぴえんなファンタスト<br>🌰<br>🥺徹子ぷゆゆ<br>🎩<br>🧐ペンギンぷゆゆ<br>🧔🏻‍♂️パブロ（移民）<br>🫲🥺🫱バード<br>🧑‍🦲進化ぷゆゆ<br>👴🏽マツモトさん（日系人）<br>┗😎┛ハジハジくん<br>🎃ハロウィンぷゆゆ<br>🥸暇空茜<br><br>敵<br>😁笑顔さん（エガオ）<br>😃地上最強の、おでw（宇宙最強の、おでw 富良野最強の、おでw）<br>🤠O.D.（アメリカ生まれの😃の親戚）<br>💩うんこさん<br>👽たかし<br>👼シコリエル<br>😈悪魔さん</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/7 14:20:46</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZZYS37ntjT_5s3Ya0Z" data-author-id="W4ZZKXRY9CS">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="9">No.9</span>
+              <b class="post-author" data-action="show-profile" data-name="🥺ぷゆゆ🥺">🥺ぷゆゆ🥺</b>
+              
+                <span class="badge-op">主</span>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">消えてたのでまた作りました、迷惑おかけしましたゆ✋🥺</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/7 14:21:36</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZe2choN5GNbx5vw5it" data-author-id="5OMEBVJ29OI">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="10">No.10</span>
+              <b class="post-author" data-action="show-profile" data-name="ぷゆゆ博士🥸">ぷゆゆ博士🥸</b>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">あげゆぞ</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/8 16:00:20</span>
+            </div>
+          </div>
+        
+      </div>
+    </div>
+    <!-- ▼▼▼ レス投稿フォーム ▼▼▼ -->
+    <div class="card">
+      <h4>レス投稿</h4>
+      <input id="replyName" type="text" placeholder="名前" style="margin-bottom:8px;">
+      <textarea id="replyText" placeholder="本文"></textarea>
+      <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
+        <input id="replyImage" type="file" accept="image/*">
+        <button class="btn" id="replyBtn">投稿</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ライトボックスなどのモーダル要素（必要であればindex.ejsからコピー） -->
+  <div id="imageLightbox" class="lightbox-overlay" style="display:none;"><div class="lightbox-content"><img id="lightboxImage" src=""><button id="lightboxClose" class="lightbox-close-btn">&times;</button></div></div>
+
+  <!-- ▼▼▼ 元のindex.ejsから、スレッドページで必要なJavaScriptを移植・調整 ▼▼▼ -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDS3Tlr9Oc4z5Kz2Zg72p9VRayPSAbmwTw",
+      authDomain: "config-f5509.firebaseapp.com",
+      databaseURL: "https://config-f5509-default-rtdb.firebaseio.com",
+      projectId: "config-f5509",
+      storageBucket: "config-f5509.appspot.com",
+      messagingSenderId: "513023904601",
+      appId: "1:513023904601:web:1846aa87aec5de306e1a48",
+      measurementId: "G-KT2LZC2EED"
+    };
+
+    // このページのスレッドIDをejsから受け取る
+    const currentThreadId = "-OZZX3nbxBb_PWwoPOBS";
+    
+    // 必要なヘルパー関数を移植
+    function getCookie(n){const kv=document.cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith(n+'='));return kv?decodeURIComponent(kv.split('=')[1]):null;}
+    function uid(l=10){return Math.random().toString(36).slice(2,2+l).toUpperCase();}
+    function setCookie(n,v,d=365){const e=new Date();e.setTime(e.getTime()+(d*24*60*60*1000));document.cookie=`${n}=${encodeURIComponent(v)};expires=${e.toUTCString()};path=/;SameSite=Lax;Secure`;}
+    
+    const PERMANENT_ID_COOKIE = 'puyuyun_permanent_id_v2';
+    const DAILY_ID_COOKIE = 'puyuyun_daily_id_v2';
+    const USERNAME_COOKIE = 'puyuyun_username_v1';
+    
+    function ensureUser() { /* ... 元のensureUser関数をここにコピー ... */ }
+    function getUser() { return ensureUser(); }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        firebase.initializeApp(firebaseConfig);
+      } catch (e) {
+        console.error("Firebaseの初期化に失敗", e);
+      }
+      const db = firebase.database();
+      
+      const user = getUser();
+      document.getElementById('userDisplay').textContent = `あなた: ${user.name}`;
+      document.getElementById('replyName').value = user.name;
+
+      // リアルタイム更新のリスナーを設定
+      const postsRef = db.ref(`threads/${currentThreadId}/posts`);
+      postsRef.on('child_added', (snapshot) => {
+        const newPost = snapshot.val();
+        const postElement = document.querySelector(`[data-post-id="${newPost.id}"]`);
+        // ページ読み込み時に既に存在する場合は何もしない (重複描画を防ぐ)
+        if (postElement) return;
+        
+        // 新しい投稿を動的に描画する (簡易版)
+        const container = document.getElementById('postsContainer');
+        const newPostDiv = document.createElement('div');
+        newPostDiv.className = 'post';
+        newPostDiv.dataset.postId = newPost.id;
+        // ... newPostDivの中身を生成するロジック ...
+        container.appendChild(newPostDiv);
+      });
+
+      // レス投稿ボタンの処理
+      document.getElementById('replyBtn').onclick = async () => {
+        const btn = document.getElementById('replyBtn');
+        btn.disabled = true;
+        try {
+          const currentUser = getUser();
+          const name = document.getElementById('replyName').value.trim() || currentUser.name;
+          const text = document.getElementById('replyText').value.trim();
+          if (!text) throw new Error('本文を入力してください。');
+          
+          const newPostRef = postsRef.push();
+          const newPostData = {
+            id: newPostRef.key,
+            author: { permanentId: currentUser.permanentId, id: currentUser.id, name: name },
+            text: text,
+            createdAt: firebase.database.ServerValue.TIMESTAMP
+          };
+          
+          await newPostRef.set(newPostData);
+          
+          // 投稿後の後処理
+          document.getElementById('replyText').value = '';
+
+        } catch (e) {
+          alert('投稿エラー: ' + e.message);
+        } finally {
+          btn.disabled = false;
+        }
+      };
+
+      // ライトボックスなどのイベントリスナーも設定
+      const lightbox = document.getElementById('imageLightbox');
+      document.body.addEventListener('click', (e) => {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
+        if (target.dataset.action === 'open-lightbox') {
+          lightbox.style.display='flex';
+          document.getElementById('lightboxImage').src = target.src;
+        }
+      });
+      lightbox.onclick = () => lightbox.style.display = 'none';
+
+      // テーマ切り替え
+      document.getElementById('themeToggleBtn').onclick=()=>{/* ... */};
+      // 更新ボタン
+      document.getElementById('refreshBtn').onclick=()=>location.reload();
+    });
+  </script>
+</body>
+</html>

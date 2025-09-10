@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale-1" />
+  <!-- ▼▼▼ タイトルを動的に設定 ▼▼▼ -->
+  <title>機能関連のスレ💪😠 - 🥺ぷゆゆな集会場🥺</title>
+  <meta name="description" content="ぷゆゆ🥺好きがこぞって集まると噂の掲示板のスレッドです。" />
+
+  <!-- OGPタグもスレッド情報に合わせて動的に設定 -->
+  <meta property="og:title" content="機能関連のスレ💪😠" />
+  <meta property="og:description" content="ぷゆゆ🥺好きがこぞって集まると噂の掲示板" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://hikakinmania4-cmyk.github.io/puyuyu-na-shukaijo/thread--OZZZnnXIR5RZh7-JX4c.html" />
+  <meta property="og:image" content="https://i.ibb.co/93Stdh8x/96a86591b41f.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  
+  <!-- ▼▼▼ 元のCSSをここに全て貼り付けます ▼▼▼ -->
+  <style>
+    :root{--primary:#1565c0;--accent:#0288d1;--bg:#f5f7fb;--card:#ffffff;--muted:#6b7280;--danger:#ef4444;--text-main:#111827;--text-muted:#6b7280;--border-color:#e5e7eb;}
+    .dark-mode{--primary:#60a5fa;--accent:#38bdf8;--bg:#111827;--card:#1f2937;--muted:#9ca3af;--text-main:#f9fafb;--text-muted:#9ca3af;--border-color:#374151;}
+    *{box-sizing:border-box}
+    body{font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Hiragin- Kaku Gothic ProN",Meiryo,sans-serif;background:var(--bg);margin:0;padding:0;color:var(--text-main);transition:background-color .3s,color .3s;}
+    header{background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+    header h1{margin:0;font-size:18px;flex-grow:1;word-break:break-all;}
+    header .controls{display:flex;gap:8px;align-items:center;}
+    header .userbox{font-size:13px; margin-left: auto; text-align:right;}
+    header button, header a.btn { text-decoration: none; background:rgba(255,255,255,0.14);border:none;color:#fff;padding:6px 10px;border-radius:6px;cursor:pointer; display: inline-flex; align-items: center; gap: 6px; position:relative;}
+    header button:hover, header a.btn:hover {background:rgba(255,255,255,0.22)}
+    .wrap{max-width:1000px;margin:16px auto;padding:12px}
+    .card{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 2px 6px rgba(2,6,23,0.06);margin-bottom:12px;border:1px solid var(--border-color); transition: background-color .3s, border-color .3s;}
+    .card h2{margin:0 0 8px 0;font-size:16px;color:var(--primary);word-break:break-all;}
+    .thread-header{display:flex;flex-wrap:nowrap;justify-content:space-between;align-items:flex-start;gap:16px;}
+    .thread-header-main{min-width:0;flex-grow:1;}
+    .thread-header-meta{text-align:right;flex-shrink:0;}
+    input[type="text"],textarea,select{width:100%;padding:8px;border:1px solid var(--border-color);border-radius:8px;font-size:14px;background:var(--card);color:var(--text-main);}
+    textarea{min-height:80px;resize:vertical}
+    .btn{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;transition:background-color 0.2s;}
+    .btn:disabled{background:var(--muted);cursor:not-allowed;}
+    .btn.warn{background:var(--danger)}
+    .btn.small{padding:6px 8px;font-size:13px;border-radius:6px}
+    .btn.liked{background:#e11d48;color:white;}
+    .post{padding:10px;border-top:1px solid var(--border-color);margin-top:8px;}
+    #postsContainer > .post:first-child{margin-top:0; border-top: none;}
+    .post .meta{font-size:12px;color:var(--text-muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap; margin-bottom: 8px;}
+    .post .meta .no{color:var(--accent);cursor:pointer;font-weight:700}
+    .post .meta .post-author{font-weight:bold;cursor:pointer; color: var(--text-main);}
+    .post .body{white-space:pre-wrap;word-break:break-word}
+    .post .body a{color:var(--primary);}
+    .post-image{max-width:280px;height:auto;border-radius:6px;margin-top:8px;display:block;cursor:pointer}
+    .controls{margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+    .timestamp{margin-left:auto; white-space:nowrap;}
+    .badge-op, .badge-level{background:var(--primary);color:white;padding:3px 6px;border-radius:999px;font-size:12px; white-space:nowrap;}
+    .banned-note, .deleted-note {color:var(--danger);font-weight:700;margin-top:8px;}
+    /* ... 他にも必要なCSSがあればここに追加 ... */
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🥺ぷゆゆな集会場🥺</h1>
+    <div class="userbox"><span id="userDisplay"></span></div>
+    <div class="controls">
+      <!-- ▼▼▼ リンク先をルートのindex.html（またはリポジトリ名）に変更 ▼▼▼ -->
+      <a href="/puyuyu-na-shukaijo/" class="btn">🏠 ホーム</a>
+      <button id="historyBtn" disabled>📜 履歴</button>
+      <button id="settingsBtn" disabled>⚙️ 設定</button>
+      <button id="themeToggleBtn">🌙</button>
+      <button id="refreshBtn">🔄 更新</button>
+    </div>
+  </header>
+
+  <div class="wrap" id="app">
+    <div class="card">
+      <div class="thread-header">
+        <div class="thread-header-main"><h2>機能関連のスレ💪😠</h2></div>
+        <div class="thread-header-meta">
+            <div class="small-muted">作成: 9/7/2025, 2:27:32 PM</div>
+        </div>
+      </div>
+      <!-- ▼▼▼ ここからが投稿表示エリア ▼▼▼ -->
+      <div id="postsContainer">
+        
+          <div class="post" data-post-id="-OZZZnnXIR5RZh7-JX4c" data-author-id="W4ZZKXRY9CS">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="1">No.1</span>
+              <b class="post-author" data-action="show-profile" data-name="🥺ぷゆゆ🥺">🥺ぷゆゆ🥺</b>
+              
+                <span class="badge-op">主</span>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">実装してほしい機能、見つけたバグ、修正してほしい機能などあればこちらにどうぞ</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/7 14:27:32</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZdMHn_504XqOYprJ0T" data-author-id="T71VQJ0TNDI">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="2">No.2</span>
+              <b class="post-author" data-action="show-profile" data-name="✊🥹ぬゆゆ🥹🤜">✊🥹ぬゆゆ🥹🤜</b>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">質問だぬ🖐️🥺<br>レベルの上限ってあるのぬ？🥹</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/8 12:46:36</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZdN4KMlQdz4jyZXQHA" data-author-id="W4ZZKXRY9CS">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="3">No.3</span>
+              <b class="post-author" data-action="show-profile" data-name="🥺ぷゆゆ🥺">🥺ぷゆゆ🥺</b>
+              
+                <span class="badge-op">主</span>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">>>2 ないゆよ〜✋🥺いくらでも高みを目指せるゆ😁👍</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/8 12:50:02</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZdRA_RHsv9ynLyXDGb" data-author-id="T71VQJ0TNDI">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="4">No.4</span>
+              <b class="post-author" data-action="show-profile" data-name="✊🥹ぬゆゆ🥹🤜">✊🥹ぬゆゆ🥹🤜</b>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">>>3 ありがとぬ🥺<br>さらなる高みを目指すぬん👊🥺</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/8 13:07:57</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZeGDouKY_qMOdxfB2W" data-author-id="5OMEBVJ29OI">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="5">No.5</span>
+              <b class="post-author" data-action="show-profile" data-name="ぷゆゆ博士🥸">ぷゆゆ博士🥸</b>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">>>1 御徒町があった台東区の今日の天気が毎日見れる機能</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/8 16:59:44</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZhYY0o3LpKEq10phnU" data-author-id="W4ZZKXRY9CS">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="6">No.6</span>
+              <b class="post-author" data-action="show-profile" data-name="🥺ぷゆゆ🥺">🥺ぷゆゆ🥺</b>
+              
+                <span class="badge-op">主</span>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">>>5 追加しといたゆ✋🥺スレタイに御徒町と入れてスレ立てをするとこの機能を使えるゆ✋🥺</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/9 8:18:36</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZhp9JqyWXYxaBwmnAj" data-author-id="T71VQJ0TNDI">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="7">No.7</span>
+              <b class="post-author" data-action="show-profile" data-name="✊🥹ぬゆゆ🥹🤜">✊🥹ぬゆゆ🥹🤜</b>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">>>6 <br>🥹ほんとに追加したの....🥹</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/9 9:35:34</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZiJfmpqf7QMC40uLcs" data-author-id="T71VQJ0TNDI">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="8">No.8</span>
+              <b class="post-author" data-action="show-profile" data-name="✊🥹ぬゆゆ🥹🤜">✊🥹ぬゆゆ🥹🤜</b>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">二週間レスされてないスレが消えるってことは<br>完走したスレは二週間で絶対消えるのぬ？🥺</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/9 11:53:18</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZiLdAaSND2faCd7lFD" data-author-id="W4ZZKXRY9CS">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="9">No.9</span>
+              <b class="post-author" data-action="show-profile" data-name="🥺ぷゆゆ🥺">🥺ぷゆゆ🥺</b>
+              
+                <span class="badge-op">主</span>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">>>8 いまのところはそうゆ、完走したスレをアーカイブとして残すのはいいかもしれないゆ✋🥺</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/9 12:01:51</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZiMqjrjDyHuMMe6Csc" data-author-id="T71VQJ0TNDI">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="10">No.10</span>
+              <b class="post-author" data-action="show-profile" data-name="✊🥹ぬゆゆ🥹🤜">✊🥹ぬゆゆ🥹🤜</b>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">アーカイブみたいに残すのはいいぬんね🥹</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/9 12:07:09</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZiO5eAKaEffPHqoJx4" data-author-id="5OMEBVJ29OI">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="11">No.11</span>
+              <b class="post-author" data-action="show-profile" data-name="ぷゆゆ博士🥸">ぷゆゆ博士🥸</b>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">大吉とかマジ吉とか出るくじ機能とか欲しくない？🥸</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/9 12:12:36</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZj0ulond2fThIPU4Zo" data-author-id="CT0AOJSREBF">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="12">No.12</span>
+              <b class="post-author" data-action="show-profile" data-name="ぷゆゆ2">ぷゆゆ2</b>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">>>11 追加しておきましたゆ✋🥺!omikuzi(本番ではzをjに変える)で使えますゆ✋🥺</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/9 15:10:56</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZj29jdjD5v5mC8485i" data-author-id="CT0AOJSREBF">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="13">No.13</span>
+              <b class="post-author" data-action="show-profile" data-name="ぷゆゆ2">ぷゆゆ2</b>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">>>10 追加しておきましたゆ✋🥺スレッド一覧のメモリーズから見れますゆ✋🥺</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/9 15:16:24</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZj2lRFPhU7Fzb4GvWH" data-author-id="CT0AOJSREBF">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="14">No.14</span>
+              <b class="post-author" data-action="show-profile" data-name="ぷゆゆ2">ぷゆゆ2</b>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">新しい実績人気者🥺を追加しましたゆぷゆゆ🥺のリアクションを10回もらうと獲得できますゆ✋🥺</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/9 15:19:03</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZj4v-9BAREeApHQxye" data-author-id="5OMEBVJ29OI">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="15">No.15</span>
+              <b class="post-author" data-action="show-profile" data-name="ぷゆゆ博士🥸">ぷゆゆ博士🥸</b>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">!omikuzi<br>てすと</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/9 15:28:24</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZj5-h2cVO2nfMtPPcp" data-author-id="5OMEBVJ29OI">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="16">No.16</span>
+              <b class="post-author" data-action="show-profile" data-name="ぷゆゆ博士🥸">ぷゆゆ博士🥸</b>
+              
+            </div>
+            
+              <div class="deleted-note">[削除されました]</div>
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/9 15:28:48</span>
+            </div>
+          </div>
+        
+          <div class="post" data-post-id="-OZj56jAcwLLMdv-Gzs5" data-author-id="5OMEBVJ29OI">
+            <div class="meta">
+              <span class="no" data-action="insert-quote-number" data-num="17">No.17</span>
+              <b class="post-author" data-action="show-profile" data-name="!omikuzi">!omikuzi</b>
+              
+            </div>
+            
+              <!-- renderContent関数をクライアント側JSで定義して使うため、一旦プレーンテキストで出力 -->
+              <div class="body">😠凶🤓<br>電通案件だぞ😠<br>ラッキーアイテム: うんち💩<br>🤓</div>
+              
+            
+            <div class="controls">
+              <!-- リアクション等のインタラクティブな部分はクライアント側JSで動的に生成・制御します -->
+              <span class="timestamp small-muted">2025/9/9 15:29:17</span>
+            </div>
+          </div>
+        
+      </div>
+    </div>
+    <!-- ▼▼▼ レス投稿フォーム ▼▼▼ -->
+    <div class="card">
+      <h4>レス投稿</h4>
+      <input id="replyName" type="text" placeholder="名前" style="margin-bottom:8px;">
+      <textarea id="replyText" placeholder="本文"></textarea>
+      <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
+        <input id="replyImage" type="file" accept="image/*">
+        <button class="btn" id="replyBtn">投稿</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ライトボックスなどのモーダル要素（必要であればindex.ejsからコピー） -->
+  <div id="imageLightbox" class="lightbox-overlay" style="display:none;"><div class="lightbox-content"><img id="lightboxImage" src=""><button id="lightboxClose" class="lightbox-close-btn">&times;</button></div></div>
+
+  <!-- ▼▼▼ 元のindex.ejsから、スレッドページで必要なJavaScriptを移植・調整 ▼▼▼ -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDS3Tlr9Oc4z5Kz2Zg72p9VRayPSAbmwTw",
+      authDomain: "config-f5509.firebaseapp.com",
+      databaseURL: "https://config-f5509-default-rtdb.firebaseio.com",
+      projectId: "config-f5509",
+      storageBucket: "config-f5509.appspot.com",
+      messagingSenderId: "513023904601",
+      appId: "1:513023904601:web:1846aa87aec5de306e1a48",
+      measurementId: "G-KT2LZC2EED"
+    };
+
+    // このページのスレッドIDをejsから受け取る
+    const currentThreadId = "-OZZZnnXIR5RZh7-JX4c";
+    
+    // 必要なヘルパー関数を移植
+    function getCookie(n){const kv=document.cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith(n+'='));return kv?decodeURIComponent(kv.split('=')[1]):null;}
+    function uid(l=10){return Math.random().toString(36).slice(2,2+l).toUpperCase();}
+    function setCookie(n,v,d=365){const e=new Date();e.setTime(e.getTime()+(d*24*60*60*1000));document.cookie=`${n}=${encodeURIComponent(v)};expires=${e.toUTCString()};path=/;SameSite=Lax;Secure`;}
+    
+    const PERMANENT_ID_COOKIE = 'puyuyun_permanent_id_v2';
+    const DAILY_ID_COOKIE = 'puyuyun_daily_id_v2';
+    const USERNAME_COOKIE = 'puyuyun_username_v1';
+    
+    function ensureUser() { /* ... 元のensureUser関数をここにコピー ... */ }
+    function getUser() { return ensureUser(); }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        firebase.initializeApp(firebaseConfig);
+      } catch (e) {
+        console.error("Firebaseの初期化に失敗", e);
+      }
+      const db = firebase.database();
+      
+      const user = getUser();
+      document.getElementById('userDisplay').textContent = `あなた: ${user.name}`;
+      document.getElementById('replyName').value = user.name;
+
+      // リアルタイム更新のリスナーを設定
+      const postsRef = db.ref(`threads/${currentThreadId}/posts`);
+      postsRef.on('child_added', (snapshot) => {
+        const newPost = snapshot.val();
+        const postElement = document.querySelector(`[data-post-id="${newPost.id}"]`);
+        // ページ読み込み時に既に存在する場合は何もしない (重複描画を防ぐ)
+        if (postElement) return;
+        
+        // 新しい投稿を動的に描画する (簡易版)
+        const container = document.getElementById('postsContainer');
+        const newPostDiv = document.createElement('div');
+        newPostDiv.className = 'post';
+        newPostDiv.dataset.postId = newPost.id;
+        // ... newPostDivの中身を生成するロジック ...
+        container.appendChild(newPostDiv);
+      });
+
+      // レス投稿ボタンの処理
+      document.getElementById('replyBtn').onclick = async () => {
+        const btn = document.getElementById('replyBtn');
+        btn.disabled = true;
+        try {
+          const currentUser = getUser();
+          const name = document.getElementById('replyName').value.trim() || currentUser.name;
+          const text = document.getElementById('replyText').value.trim();
+          if (!text) throw new Error('本文を入力してください。');
+          
+          const newPostRef = postsRef.push();
+          const newPostData = {
+            id: newPostRef.key,
+            author: { permanentId: currentUser.permanentId, id: currentUser.id, name: name },
+            text: text,
+            createdAt: firebase.database.ServerValue.TIMESTAMP
+          };
+          
+          await newPostRef.set(newPostData);
+          
+          // 投稿後の後処理
+          document.getElementById('replyText').value = '';
+
+        } catch (e) {
+          alert('投稿エラー: ' + e.message);
+        } finally {
+          btn.disabled = false;
+        }
+      };
+
+      // ライトボックスなどのイベントリスナーも設定
+      const lightbox = document.getElementById('imageLightbox');
+      document.body.addEventListener('click', (e) => {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
+        if (target.dataset.action === 'open-lightbox') {
+          lightbox.style.display='flex';
+          document.getElementById('lightboxImage').src = target.src;
+        }
+      });
+      lightbox.onclick = () => lightbox.style.display = 'none';
+
+      // テーマ切り替え
+      document.getElementById('themeToggleBtn').onclick=()=>{/* ... */};
+      // 更新ボタン
+      document.getElementById('refreshBtn').onclick=()=>location.reload();
+    });
+  </script>
+</body>
+</html>
