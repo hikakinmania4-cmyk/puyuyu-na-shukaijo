@@ -41,7 +41,9 @@
       <button id="refreshBtn">🔄 更新</button>
     </div>
   </header>
-  <div class="wrap" id="app"></div>
+  <div class="wrap" id="app">
+      <!-- 中身は script.js によって動的に生成されます -->
+  </div>
   <div id="profileModal" class="modal-overlay"><div class="modal-content"><div class="modal-header"><h2 id="profileName"></h2><button id="closeProfileBtn" class="modal-close-btn">&times;</button></div><div class="modal-body"><p id="profileId"></p><div id="profileControls"></div><h3>この人の投稿</h3><div id="profilePostsList"></div></div></div></div>
   <div id="imageLightbox" class="lightbox-overlay"><div class="lightbox-content"><img id="lightboxImage" src=""><button id="lightboxClose" class="lightbox-close-btn">&times;</button></div></div>
   <div id="voteModal" class="modal-overlay"><div class="modal-content"><div class="modal-header"><h2>アンケート作成</h2><button id="closeVoteModalBtn" class="modal-close-btn">&times;</button></div><div class="modal-body"><h4>投票期限</h4><select id="voteDeadlineSelect" style="width:100%;margin-bottom:12px;"><option value="0">無期限</option><option value="60000">1分</option><option value="180000">3分</option><option value="300000">5分</option><option value="900000">15分</option><option value="1800000">30分</option><option value="3600000">1時間</option><option value="21600000">6時間</option><option value="86400000">1日</option><option value="259200000">3日</option></select><h4>選択肢</h4><div id="voteOptionsContainer"><input type="text" class="vote-option-input" placeholder="選択肢1" style="margin-bottom:8px;"><input type="text" class="vote-option-input" placeholder="選択肢2" style="margin-bottom:8px;"></div><button id="addVoteOptionBtn" class="btn small">選択肢を追加</button><div style="text-align:right; margin-top:16px;"><button id="insertVoteBtn" class="btn">本文に挿入</button></div></div></div></div>
