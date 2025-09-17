@@ -308,7 +308,7 @@ const ACHIEVEMENTS_MASTER = {
 };
 
 const NG_WORDS = ['바보', '멍청이', '죽어', '死ね', 'バカ', '馬鹿', 'kill', 'idiot'];
-const ADMIN_IDS = ['Y7Q2VMGENWA', '8LXMQKS6QX3'];
+const ADMIN_IDS = ['WaO4T2xAkvOw27tiuOlqpSaUrgk1', '9wfKEKyW6Vd5YowinakrOHSTZT2'];
 
 document.addEventListener('DOMContentLoaded', () => {
   if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
@@ -724,7 +724,6 @@ function main() {
       });
     }
     
-    // 定期的にDBのトークンを更新
     const currentUser = auth.currentUser;
     if (currentUser) {
         db.ref(`userAuthTokens/${currentUser.uid}`).set(authToken || getCookie(AUTH_TOKEN_COOKIE));
@@ -738,7 +737,6 @@ function main() {
     }
     let username = getCookie(USERNAME_COOKIE) || 'そのへんのミニワイ🥹';
     
-    // 常にFirebase AuthのUIDをpermanentIdとして返す
     return { permanentId: (currentUser ? currentUser.uid : permanentId), id: dailyInfo.id, name: username, authToken: (authToken || getCookie(AUTH_TOKEN_COOKIE)) };
   }
   
@@ -1032,7 +1030,7 @@ function main() {
         }
         
         const now = Date.now();
-        const tags = t.match(/#[\p{L}\p{N}_]+/ug)?.map(tag=>tag.substring(1))||[];
+        const tags=t.match(/#[\p{L}\p{N}_]+/ug)?.map(tag=>tag.substring(1))||[];
 
         const firstPost = { author:u, text:x, img:i, createdAt:now };
         if(postData.effect) firstPost.effect = postData.effect;
@@ -1052,7 +1050,8 @@ function main() {
         const result = await createPostFunction({
             isNewThread: true,
             postData: firstPost,
-            threadData: newThreadData
+            threadData: newThreadData,
+            authToken: u.authToken
         });
 
         if (!result.data.success) {
@@ -1775,10 +1774,15 @@ function main() {
       startHeartbeat();
       startJanitor();
 
-      const vCb = vRef.on('value', s => {
+      const vCb = vRef.on('value', async s => {
           currentViewers = s.numChildren();
-                    if(location.hash === '#thread-' + id) {
-              // db.ref('threadMetadata/' + id + '/viewerCount').set(currentViewers);
+          if(location.hash === '#thread-' + id) {
+              try {
+                  const updateViewerCountFunction = functions.httpsCallable('updateViewerCount');
+                  await updateViewerCountFunction({ threadId: id, count: currentViewers });
+              } catch (error) {
+                  console.warn("閲覧者数の更新に失敗:", error); // 失敗しても致命的ではないので警告に留める
+              }
               const e = document.getElementById('viewer-count');
               if(e) e.textContent = currentViewers;
           }
@@ -1945,7 +1949,8 @@ function main() {
             isNewThread: false,
             threadId: id,
             postData: postPayload,
-            shouldUpdateTimestamp: shouldUpdateTimestamp
+            shouldUpdateTimestamp: shouldUpdateTimestamp,
+            authToken: cU.authToken
         });
 
         if (!result.data.success) {
@@ -1956,7 +1961,7 @@ function main() {
         const todayStr = getJstDateString();
         currentActivity.date === todayStr ? currentActivity.postCount++ : currentActivity = { date: todayStr, postCount: 1 };
         saveDailyActivity(currentActivity);
-        
+
         if (threadData.postCounter + 1 >= POST_LIMIT && threadData.op.permanentId) {
              // 実績解除のロジックはサーバー側に移行済み
         }
