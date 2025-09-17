@@ -340,7 +340,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function main() {
   const db = firebase.database();
-  const functions = firebase.functions();
   const auth = firebase.auth();
 
   let audioContext = null;
@@ -437,7 +436,6 @@ function main() {
   const PERMANENT_ID_COOKIE = 'puyuyun_permanent_id_v2';
   const DAILY_ID_COOKIE = 'puyuyun_daily_id_v2';
   const USERNAME_COOKIE = 'puyuyun_username_v1';
-  const AUTH_TOKEN_COOKIE = 'puyuyun_auth_token_v1';
   const LAST_POST_TIME_KEY = 'puyuyun_last_post_time';
   const EFFECT_COOLDOWN_KEY = 'puyuyun_effect_cooldown';
   const POST_INTERVAL_SECONDS = 10;
@@ -701,34 +699,22 @@ function main() {
       return content.replace(/\n/g, '<br>');
   }
   
-  function ensureUser() {
-    let permanentId = getCookie(PERMANENT_ID_COOKIE);
-    let authToken = getCookie(AUTH_TOKEN_COOKIE);
-
-    if (!permanentId || !authToken) {
-      permanentId = uid(16);
-      authToken = uid(32);
-      setCookie(PERMANENT_ID_COOKIE, permanentId, 365 * 10);
-      setCookie(AUTH_TOKEN_COOKIE, authToken, 365 * 10);
-      
-      const unsubscribe = auth.onAuthStateChanged(user => {
-        if (user) {
-          if (user.uid !== permanentId) {
-             console.warn("Auth UIDとCookieのpermanentIdが異なります。Auth UIDを正とします。");
-             setCookie(PERMANENT_ID_COOKIE, user.uid, 365 * 10);
-          }
-          db.ref(`userAuthTokens/${user.uid}`).set(authToken)
-            .catch(err => console.error("AuthTokenの保存に失敗:", err));
-          unsubscribe();
+  // ★★★【最終修正】ここが最後の鍵です ★★★
+  function getUser() {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        console.warn("認証未完了。一時的な情報を返します。");
+        // CookieベースのIDを一時的に使う
+        let permanentId = getCookie(PERMANENT_ID_COOKIE);
+        if (!permanentId) {
+            permanentId = uid(16);
+            setCookie(PERMANENT_ID_COOKIE, permanentId, 365 * 10);
         }
-      });
+        return { permanentId, id: "TEMP_DAILY_ID", name: "読み込み中..." };
     }
     
-    const currentUser = auth.currentUser;
-    if (currentUser) {
-        db.ref(`userAuthTokens/${currentUser.uid}`).set(authToken || getCookie(AUTH_TOKEN_COOKIE));
-    }
-
+    const permanentId = currentUser.uid;
+    
     const todayStr = getJstDateString();
     let dailyInfo = {}; try { dailyInfo = JSON.parse(getCookie(DAILY_ID_COOKIE) || '{}'); } catch (e) {}
     if (dailyInfo.date !== todayStr || !dailyInfo.id) {
@@ -736,9 +722,10 @@ function main() {
         setCookie(DAILY_ID_COOKIE, JSON.stringify(dailyInfo), 1);
     }
     let username = getCookie(USERNAME_COOKIE) || 'そのへんのミニワイ🥹';
-    
-    return { permanentId: (currentUser ? currentUser.uid : permanentId), id: dailyInfo.id, name: username, authToken: (authToken || getCookie(AUTH_TOKEN_COOKIE)) };
+    return { permanentId, id: dailyInfo.id, name: username };
   }
+  // ★★★ ここまでが大きな変更点 ★★★
+
   
   function getLevel(exp) {
     return (exp || 0) + 1;
@@ -762,7 +749,7 @@ function main() {
       if (replyNameInput) replyNameInput.value = n;
       return true;
   }
-  function getUser(){return ensureUser();}
+
   function refreshHeader(){document.getElementById('userDisplay').textContent=`あなた: ${getUser().name}`;}
   function loadHistory(){try{return JSON.parse(localStorage.getItem(HISTORY_KEY))||[];}catch(e){return[];}}
   function saveHistory(h){localStorage.setItem(HISTORY_KEY,JSON.stringify(h));}
@@ -881,41 +868,30 @@ function main() {
   }
 
   async function getOkachimachiWeather() {
-    const url = `https://asia-northeast1-config-f5509.cloudfunctions.net/getWeather`;
+    // この関数はCloud Functionsを呼び出すため、もしFunctionsを全て削除した場合は動作しません。
+    // その場合は、この関数を呼び出している部分をコメントアウトしてください。
     try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`天気情報の取得に失敗しました: ${response.statusText}`);
-      }
-      const data = await response.json();
-      
-      const weatherDescription = data.weather[0]?.description || '不明';
-      const weatherIcon = ((icon) => {
-        const map = {
-          '01d': '☀️', '01n': '🌙', '02d': '🌤️', '02n': '☁️',
-          '03d': '☁️', '03n': '☁️', '04d': '☁️', '04n': '☁️',
-          '09d': '🌧️', '09n': '🌧️', '10d': '🌦️', '10n': '🌧️',
-          '11d': '⛈️', '11n': '⛈️', '13d': '❄️', '13n': '❄️',
-          '50d': '🌫️', '50n': '🌫️'
-        };
-        return map[icon] || '';
-      })(data.weather[0]?.icon);
-      
-      const temp = data.main?.temp?.toFixed(1) || 'N/A';
-      const humidity = data.main?.humidity || 'N/A';
-      const windSpeed = data.wind?.speed?.toFixed(1) || 'N/A';
-
-      const weatherText = `【現在の御徒町の天気情報】
-天気: ${weatherDescription} ${weatherIcon}
-気温: ${temp}℃
-湿度: ${humidity}%
-風速: ${windSpeed} m/s
---------------------
-`;
-      return weatherText;
+        const getWeatherFunction = firebase.functions().httpsCallable('getWeather');
+        const result = await getWeatherFunction();
+        const data = result.data;
+        const weatherDescription = data.weather[0]?.description || '不明';
+        const weatherIcon = ((icon) => {
+            const map = {
+            '01d': '☀️', '01n': '🌙', '02d': '🌤️', '02n': '☁️',
+            '03d': '☁️', '03n': '☁️', '04d': '☁️', '04n': '☁️',
+            '09d': '🌧️', '09n': '🌧️', '10d': '🌦️', '10n': '🌧️',
+            '11d': '⛈️', '11n': '⛈️', '13d': '❄️', '13n': '❄️',
+            '50d': '🌫️', '50n': '🌫️'
+            };
+            return map[icon] || '';
+        })(data.weather[0]?.icon);
+        const temp = data.main?.temp?.toFixed(1) || 'N/A';
+        const humidity = data.main?.humidity || 'N/A';
+        const windSpeed = data.wind?.speed?.toFixed(1) || 'N/A';
+        return `【現在の御徒町の天気情報】\n天気: ${weatherDescription} ${weatherIcon}\n気温: ${temp}℃\n湿度: ${humidity}%\n風速: ${windSpeed} m/s\n--------------------\n`;
     } catch (error) {
-      console.error("天気情報の取得エラー:", error);
-      return '【天気情報の取得に失敗しました】\n';
+        console.error("天気情報の取得エラー:", error);
+        return '【天気情報の取得に失敗しました】\n';
     }
   }
 
@@ -970,6 +946,7 @@ function main() {
       const b=document.getElementById('createThreadBtn');
       try{
         const u = getUser();
+        if (u.permanentId === "TEMP_ID") throw new Error("認証情報がまだ準備できていません。少し待ってから再試行してください。");
         
         if (globalBanList[u.permanentId]) throw new Error('あなたはこの掲示板から追放されています。');
         const t = document.getElementById('newTitle').value.replace(/(\r\n|\n|\r)/gm, "").trim();
@@ -1029,34 +1006,24 @@ function main() {
             }
         }
         
-        const now = Date.now();
+        const threadRef=db.ref('threads').push();
+        const threadId = threadRef.key;
+        const firstPostId = threadRef.key;
         const tags=t.match(/#[\p{L}\p{N}_]+/ug)?.map(tag=>tag.substring(1))||[];
-
-        const firstPost = { author:u, text:x, img:i, createdAt:now };
+        const now=Date.now();
+        
+        const firstPost = {id:firstPostId,author:u,text:x,img:i,createdAt:now};
         if(postData.effect) firstPost.effect = postData.effect;
         if(postData.isCommandPost) firstPost.isCommandPost = true;
 
-        const newThreadData = {
-            title: t,
-            createdAt: now,
-            lastUpdatedAt: firebase.database.ServerValue.TIMESTAMP,
-            op: u,
-            tags: tags,
-            levelRestriction: levelRestriction,
-            previewImg: previewImg
-        };
-
-        const createPostFunction = functions.httpsCallable('createPost');
-        const result = await createPostFunction({
-            isNewThread: true,
-            postData: firstPost,
-            threadData: newThreadData,
-            authToken: u.authToken
-        });
-
-        if (!result.data.success) {
-            throw new Error("サーバーでのスレッド作成に失敗しました。");
-        }
+        const newThreadData={id:threadId,title:t,createdAt:now,lastUpdatedAt:now,op:u,posts:{[firstPostId]:firstPost},postCounter:1,tags:tags};
+        if (levelRestriction > 0) newThreadData.levelRestriction = levelRestriction;
+        
+        const threadMetadata = {id: threadId, title: t, createdAt: now, lastUpdatedAt: now, op: u, postCounter: 1, tags: tags, levelRestriction: levelRestriction, viewerCount: 0, previewImg, isArchived: false, isHallOfFame: false };
+        const updates = {};
+        updates['/threads/' + threadId] = newThreadData;
+        updates['/threadMetadata/' + threadId] = threadMetadata;
+        await db.ref().update(updates);
         
         let currentActivity = loadDailyActivity();
         const todayStr = getJstDateString();
@@ -1067,7 +1034,7 @@ function main() {
         if(postData.effect) localStorage.setItem(EFFECT_COOLDOWN_KEY, now.toString());
         
         drawingDataUrl = null;
-        location.hash='thread-'+result.data.threadId;
+        location.hash='thread-'+threadId;
         renderApp();
       }catch(e){
         if (e.message !== '天気情報取得失敗') {
@@ -1774,15 +1741,10 @@ function main() {
       startHeartbeat();
       startJanitor();
 
-      const vCb = vRef.on('value', async s => {
+      const vCb = db.ref('viewers/' + id).on('value', s => {
           currentViewers = s.numChildren();
           if(location.hash === '#thread-' + id) {
-              try {
-                  const updateViewerCountFunction = functions.httpsCallable('updateViewerCount');
-                  await updateViewerCountFunction({ threadId: id, count: currentViewers });
-              } catch (error) {
-                  console.warn("閲覧者数の更新に失敗:", error); // 失敗しても致命的ではないので警告に留める
-              }
+              db.ref('threadMetadata/' + id + '/viewerCount').set(currentViewers);
               const e = document.getElementById('viewer-count');
               if(e) e.textContent = currentViewers;
           }
@@ -1897,7 +1859,9 @@ function main() {
             const lastPostTime=localStorage.getItem(LAST_POST_TIME_KEY);
             if(lastPostTime&&Date.now()-parseInt(lastPostTime)<POST_INTERVAL_SECONDS*1000) throw new Error(`投稿は${POST_INTERVAL_SECONDS}秒に1回までです。`);
         }
-        const u=getUser();
+        const u = getUser();
+        if (u.permanentId === "TEMP_ID") throw new Error("認証情報がまだ準備できていません。少し待ってから再試行してください。");
+
         if((await db.ref(`globalBan/${u.permanentId}`).once('value')).val()) throw new Error('あなたはこの掲示板から追放されています。');
         if(threadData.postCounter >= POST_LIMIT) throw new Error(`このスレッドは${POST_LIMIT}レスの上限に達しました。`);
         
@@ -1908,7 +1872,9 @@ function main() {
         let rawText = document.getElementById('replyText').value;
         let postData = processSpecialCommands(rawText, u);
         rawText = postData.text;
+
         const t = rawText.trim();
+        
         const fileInput = document.getElementById('replyImage');
         const f = fileInput ? fileInput.files[0] : null;
 
@@ -1932,38 +1898,48 @@ function main() {
         }
         
         const i = drawingDataUrl ? drawingDataUrl : (f ? await readFileAsDataURL(f) : null);
+        const nPR=db.ref(`threads/${id}/posts`).push();
+        const nPK=nPR.key;
+        const pD={id:nPK,author:cU,text:t,img:i,createdAt:Date.now()};
+        if (postData.effect) pD.effect = postData.effect;
+        if (postData.isCommandPost) pD.isCommandPost = true;
+
+        const newPostCount = (threadData.postCounter || 0) + 1;
         
-        const postPayload = {
-            author: cU,
-            text: t,
-            img: i,
-            createdAt: Date.now()
-        };
-        if (postData.effect) postPayload.effect = postData.effect;
-        if (postData.isCommandPost) postPayload.isCommandPost = true;
+        const updates = {};
+        updates[`/threads/${id}/posts/${nPK}`] = pD;
+        updates[`/threads/${id}/postCounter`] = newPostCount;
+        updates[`/threadMetadata/${id}/postCounter`] = newPostCount;
 
         const shouldUpdateTimestamp = !iS && !isLevelUpThread;
-
-        const createPostFunction = functions.httpsCallable('createPost');
-        const result = await createPostFunction({
-            isNewThread: false,
-            threadId: id,
-            postData: postPayload,
-            shouldUpdateTimestamp: shouldUpdateTimestamp,
-            authToken: cU.authToken
-        });
-
-        if (!result.data.success) {
-            throw new Error("サーバーでの投稿処理に失敗しました。");
+        if(shouldUpdateTimestamp) {
+            const serverTimestamp = firebase.database.ServerValue.TIMESTAMP;
+            updates[`/threads/${id}/lastUpdatedAt`] = serverTimestamp;
+            updates[`/threadMetadata/${id}/lastUpdatedAt`] = serverTimestamp;
         }
 
+        if (newPostCount >= POST_LIMIT) {
+            updates[`/threadMetadata/${id}/isHallOfFame`] = true;
+        }
+        
+        await db.ref().update(updates);
+        
         let currentActivity = loadDailyActivity();
         const todayStr = getJstDateString();
         currentActivity.date === todayStr ? currentActivity.postCount++ : currentActivity = { date: todayStr, postCount: 1 };
         saveDailyActivity(currentActivity);
-
-        if (threadData.postCounter + 1 >= POST_LIMIT && threadData.op.permanentId) {
-             // 実績解除のロジックはサーバー側に移行済み
+        
+        if (newPostCount >= POST_LIMIT && threadData.op.permanentId) {
+            const opId = threadData.op.permanentId;
+            const userAchievements = (await db.ref(`userAchievements/${opId}/achievements`).once('value')).val() || {};
+            if (!userAchievements.king_puyuyu) {
+                const viewers = (await db.ref(`viewers/${id}`).once('value')).val() || {};
+                if (viewers[opId]) {
+                    unlockAchievement(opId, 'king_puyuyu');
+                } else {
+                    db.ref(`pendingAchievements/${opId}/king_puyuyu`).set(id);
+                }
+            }
         }
         
         localStorage.setItem(LAST_POST_TIME_KEY,Date.now().toString());
