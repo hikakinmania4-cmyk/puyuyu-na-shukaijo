@@ -2348,7 +2348,7 @@ function main() {
       cancelBtn.textContent = 'キャンセル';
       controlsElement.appendChild(cancelBtn);
       controlsElement.appendChild(saveBtn);
-      saveBtn.onclick = async () => {
+            saveBtn.onclick = async () => {
           const newText = textarea.value;
           if (newText.trim() === '' && !originalPost.img && !originalPost.effect) return alert('本文を空にすることはできません。');
           if (newText.length > TEXT_LIMIT) return alert(`本文は${TEXT_LIMIT}文字以内にしてください。`);
@@ -2357,16 +2357,26 @@ function main() {
           saveBtn.disabled = true;
           saveBtn.textContent = '保存中...';
           try {
-              const updateData = { 
-                text: newText.trim(),
-                effect: null,
-                isCommandPost: null
-              };
-              await postRef.update(updateData);
+              // ★★★【ここから修正】★★★
+              // データベースへの直接書き込み(postRef.update)を削除し、
+              // 作成したCloud Function (editPost) を呼び出すように変更します。
+              const editPostFunction = functions.httpsCallable('editPost');
+              await editPostFunction({
+                  threadId: threadId,
+                  postId: postId,
+                  newText: newText.trim()
+              });
+              // ★★★【ここまで修正】★★★
+
               exitEditMode({ newText: newText.trim() });
           } catch (e) {
-              alert('保存に失敗しました: ' + e.message);
-              exitEditMode();
+              // HttpsErrorの場合、より分かりやすいメッセージを表示
+              const errorMessage = e.details ? e.details.message : e.message;
+              alert('保存に失敗しました: ' + (errorMessage || "不明なエラーです。"));
+              // 失敗時はUIを元に戻すため、ボタンの無効化を解除
+              saveBtn.disabled = false;
+              saveBtn.textContent = '保存';
+              // 編集モードはキャンセルせずに維持する
           }
       };
       cancelBtn.onclick = () => exitEditMode();
