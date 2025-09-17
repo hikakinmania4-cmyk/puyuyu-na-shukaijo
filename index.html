@@ -2767,15 +2767,26 @@ function main() {
     else if (action === 'edit-post') window.editPost(threadId, postId);
     else if (action === 'show-profile') window.showUserProfile(name, id, isopadm === 'true', dailyId, postTimestamp, threadId);
     else if (action === 'open-lightbox') { lightbox.style.display='flex'; document.getElementById('lightboxImage').src=target.src; }
-    else if (action === 'delete-thread') {
+        else if (action === 'delete-thread') {
       if(confirm('本当にこのスレッドを削除しますか？\nこの操作は取り消せません。')){
         try {
-          await db.ref().update({[`/threads/${threadId}`]:null,[`/threadMetadata/${threadId}`]:null,[`/viewers/${threadId}`]:null});
-          allThreads = allThreads.filter(t => t.id !== threadId);
-          alert('スレッドの削除に成功しました。');
-          goHome();
+          // ★★★【解決策】安全なCloud Functionを呼び出すように変更 ★★★
+          const deleteThreadFunction = firebase.functions().httpsCallable('deleteThread');
+          const result = await deleteThreadFunction({ threadId: threadId });
+          
+          if (result.data.success) {
+            alert(result.data.message);
+            allThreads = allThreads.filter(t => t.id !== threadId);
+            goHome();
+          } else {
+            // Cloud Functionが意図的にエラーを返した場合
+            throw new Error(result.data.message || "サーバー側で削除が拒否されました。");
+          }
         } catch (err) {
-          alert('スレッドの削除に失敗しました: ' + err.message);
+          console.error("スレッド削除エラー:", err);
+          // エラーメッセージに、サーバーからのより詳細な理由を表示する
+          const errorMessage = err.details ? err.details.message : err.message;
+          alert('スレッドの削除に失敗しました: ' + (errorMessage || "不明なエラーです。"));
         }
       }
     }
