@@ -855,13 +855,20 @@ function main() {
   }
 
   async function getOkachimachiWeather() {
+    // 第2世代のonRequest関数は、httpsCallableではなく、URLを直接fetchで呼び出します
     const url = `https://us-central1-config-f5509.cloudfunctions.net/getWeather`;
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error(`天気情報の取得に失敗しました: ${response.statusText}`);
+        // ネットワークエラーやサーバーエラーの場合
+        throw new Error(`天気サーバーからの応答エラー: ${response.statusText}`);
       }
       const data = await response.json();
+      
+      // APIからのエラーレスポンスをチェック
+      if (data.error) {
+        throw new Error(`天気情報の取得に失敗しました: ${data.error}`);
+      }
       
       const weatherDescription = data.weather[0]?.description || '不明';
       const weatherIcon = ((icon) => {
