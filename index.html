@@ -2761,43 +2761,69 @@ function main() {
     }
   }
 
-  // ★★★ [変更点] 通知リスナーを新しいサーバーサイドプッシュ方式に変更 ★★★
-  async function setupUnreadListeners() {
-    activeUnreadListeners.forEach(l => { l.ref.off(l.type, l.callback); });
+  sync function setupUnreadListeners() {
+    // 既存のリスナーを全てクリア
+    activeUnreadListeners.forEach(l => {
+        if (l.ref && l.type && l.callback) {
+            l.ref.off(l.type, l.callback);
+        }
+    });
     activeUnreadListeners = [];
+    if (activeAchievementListener) {
+        activeAchievementListener.ref.off('value', activeAchievementListener.callback);
+        activeAchievementListener = null;
+    }
+
     globalUnreadNotifications = {};
     initialNotificationsLoaded = false;
     
-    // 実績通知のリスナーはそのまま残す
     const myId = getUser().permanentId;
+    if (!myId || myId === "TEMP_ID") return;
+
+    // --- 実績通知のリスナー (変更なし) ---
     const achRef = db.ref(`pendingAchievements/${myId}`);
     const achCallback = achRef.on('value', snapshot => {
         pendingAchievementsCache = snapshot.val() || {};
-        updateTotalUnreadBadge();
+        updateTotalUnreadBadge(); // 実績通知でもバッジを更新
     });
     activeAchievementListener = { ref: achRef, callback: achCallback };
 
-    // 自分のIDが取得できてから通知の監視を開始
-    if (!myId || myId === "TEMP_ID") return;
-
+    // --- 新しい安価通知リスナー (ロジック修正版) ---
     const notificationsRef = db.ref(`userNotifications/${myId}`);
+    let lastKnownTimestamp = 0;
 
-    // まず全ての通知を一度だけ読み込む
-    const initialSnapshot = await notificationsRef.once('value');
-    globalUnreadNotifications = initialSnapshot.val() || {};
+    // 1. まず全ての通知を一度だけ読み込む
+    const initialSnapshot = await notificationsRef.orderByChild('timestamp').once('value');
+    if (initialSnapshot.exists()) {
+        initialSnapshot.forEach(child => {
+            globalUnreadNotifications[child.key] = child.val();
+            // 最後に読み込んだ通知のタイムスタンプを更新
+            if (child.val().timestamp > lastKnownTimestamp) {
+                lastKnownTimestamp = child.val().timestamp;
+            }
+        });
+    }
     updateTotalUnreadBadge();
     initialNotificationsLoaded = true;
 
-    // その後、新しく追加された通知のみを監視
-    const query = notificationsRef.orderByChild('timestamp').startAt(Date.now());
+    // 2. 最後に読み込んだ通知のタイムスタンプ「以降」に追加されたものを監視
+    const query = notificationsRef.orderByChild('timestamp').startAt(lastKnownTimestamp + 1);
+    
     const addCallback = query.on('child_added', snapshot => {
-        if (!initialNotificationsLoaded) return; // 最初の読み込みと重複させない
+        // 最初の読み込みと重複する可能性を排除
+        if (!initialNotificationsLoaded || globalUnreadNotifications[snapshot.key]) return;
 
         const notificationId = snapshot.key;
-        globalUnreadNotifications[notificationId] = snapshot.val();
+        const newNotification = snapshot.val();
+        globalUnreadNotifications[notificationId] = newNotification;
+        
+        // 次の監視開始点を更新
+        if (newNotification.timestamp > lastKnownTimestamp) {
+            lastKnownTimestamp = newNotification.timestamp;
+        }
+
         updateTotalUnreadBadge();
 
-        // 通知音を鳴らす
         if (loadSoundSettings().enabled) {
             const sound = document.getElementById('notificationSound');
             if(sound) {
@@ -2808,7 +2834,7 @@ function main() {
     });
     activeUnreadListeners.push({ ref: query, type: 'child_added', callback: addCallback });
 
-    // 既読状態の変更を監視
+    // 3. 既読状態の変更を監視 (変更なし)
     const changeCallback = notificationsRef.on('child_changed', snapshot => {
         const notificationId = snapshot.key;
         if(globalUnreadNotifications[notificationId]){
@@ -3314,5 +3340,6 @@ function main() {
 </script>
 <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 </body>
+
 
 </html>
