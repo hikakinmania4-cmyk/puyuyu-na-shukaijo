@@ -88,28 +88,40 @@
   .headline-item:last-child {
     border-bottom: none;
   }
-  .headline-item a {
+    .headline-item a {
     color: var(--text-main);
     text-decoration: none;
     transition: color 0.2s;
-  }
-  .headline-item a:hover {
-    color: var(--primary);
+    display: flex; /* ★追加 */
+    align-items: center; /* ★追加 (上下中央揃え) */
+    width: 100%; /* ★追加 */
   }
   .headline-title {
     font-weight: bold;
     color: var(--primary);
+    white-space: nowrap; /* ★追加 (スレタイは改行させない) */
   }
   .headline-res-count {
     color: var(--text-muted);
     margin-right: 4px;
+    white-space: nowrap; /* ★追加 (レス数は改行させない) */
   }
-  .headline-time {
-    float: right;
-    color: var(--text-muted);
-    font-size: 12px;
+  
+  /* ★レス内容のための新しいスタイルを追加 */
+  .headline-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1; /* ★利用可能なスペースをすべて使う */
   }
 
+  .headline-time {
+    /* float: right; */ /* ★削除 */
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-left: 8px; /* ★追加 (左側に余白) */
+    flex-shrink: 0; /* ★追加 (縮まないようにする) */
+  }
   .footer-nav {
     position: fixed;
     bottom: 0;
@@ -2903,13 +2915,13 @@ function main() {
             headlines.forEach((h, index) => {
                 const postCounter = metaSnapshots[index].val() || '?';
                 html += `<div class="headline-item">
-                           <a href="#thread-${h.threadId}" data-action="jump-to-post" data-post-id="${h.postId}">
-                             <span class="headline-title">【${escapeHTML(h.threadTitle)}】</span>
-                             <span class="headline-res-count">(${postCounter})</span>
-                             » ${escapeHTML(h.text)}
-                             <span class="headline-time" data-timestamp="${h.timestamp}">${formatElapsedTime(h.timestamp)}</span>
-                           </a>
-                         </div>`;
+                       <a href="#thread-${h.threadId}" data-action="jump-to-post" data-post-id="${h.postId}">
+                         <span class="headline-title">【${escapeHTML(h.threadTitle)}】</span>
+                         <span class="headline-res-count">(${postCounter})</span>
+                         <span class="headline-text">» ${escapeHTML(h.text)}</span>
+                         <span class="headline-time" data-timestamp="${h.timestamp}">${formatElapsedTime(h.timestamp)}</span>
+                       </a>
+                     </div>`;
             });
             container.innerHTML = html;
         } else {
@@ -3253,4 +3265,5 @@ function main() {
 </script>
 <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 </body>
+
 </html>
