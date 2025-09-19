@@ -2931,8 +2931,7 @@ function main() {
     activeHeadlineListener = { ref: headlineRef, callback: callback };
     headlineTimeUpdater = setInterval(updateHeadlineTimes, 10000);
   }
-
-      const renderApp = async () => {
+     async function renderApp(){
     exitEditMode();
     cleanupListeners();
     currentViewers = 0;
@@ -2953,9 +2952,7 @@ function main() {
         headlineWrapper.style.display = 'none';
     }
 
-    // ★★★ここからが修正箇所★★★
-    // document.getElementById('app').innerHTML = ... の行を削除
-
+    // ★★★ ここからが「ちらつき」を解決するロジックです ★★★
     if (h.startsWith('#thread-')) {
       await renderThread(h.replace('#thread-',''));
     } else if (h === '#history') {
@@ -2965,7 +2962,7 @@ function main() {
     } else if (h === '#memories') {
       await renderMemoriesPage();
     } else if (h === '#terms') {
-      renderTermsPage();
+      await renderTermsPage();
     } else {
       // どのページでもない場合（つまりホーム）にのみ、renderHomeを実行
       renderHome();
@@ -2981,8 +2978,7 @@ function main() {
       });
       activeDataListener = { ref, callback: cb };
     }
-  }
-
+  } 
     if (h.startsWith('#thread-')) {
       await renderThread(h.replace('#thread-',''));
     } else if (h === '#history') {
@@ -3297,4 +3293,5 @@ function main() {
 </body>
 
 </html>
+
 
