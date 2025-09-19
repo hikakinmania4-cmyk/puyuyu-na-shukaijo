@@ -2932,7 +2932,7 @@ function main() {
     headlineTimeUpdater = setInterval(updateHeadlineTimes, 10000);
   }
 
-  async function renderApp(){
+    async function renderApp(){
     exitEditMode();
     cleanupListeners();
     currentViewers = 0;
@@ -2952,6 +2952,36 @@ function main() {
     } else {
         headlineWrapper.style.display = 'none';
     }
+
+    // ★★★ここからが修正箇所★★★
+    // document.getElementById('app').innerHTML = ... の行を削除
+
+    if (h.startsWith('#thread-')) {
+      await renderThread(h.replace('#thread-',''));
+    } else if (h === '#history') {
+      await renderHistoryPage();
+    } else if (h === '#settings') {
+      await renderSettingsPage();
+    } else if (h === '#memories') {
+      await renderMemoriesPage();
+    } else if (h === '#terms') {
+      renderTermsPage();
+    } else {
+      // どのページでもない場合（つまりホーム）にのみ、renderHomeを実行
+      renderHome();
+      const ref = db.ref('threadMetadata'); 
+      const cb = ref.orderByChild('lastUpdatedAt').on('value', s => {
+        stopLoadingAnimation();
+        allThreads = s.val() ? Object.values(s.val()).filter(t => t && t.title).sort((a, b) => b.lastUpdatedAt - a.lastUpdatedAt) : [];
+        if (typeof window.performDisplay === 'function') performDisplay();
+      }, e => { 
+        stopLoadingAnimation();
+        const c = document.getElementById('threadListContainer');
+        if(c) c.innerHTML = `<div class="card"><div class="banned-note">データの読み込みに失敗しました。</div></div>`;
+      });
+      activeDataListener = { ref, callback: cb };
+    }
+  }
 
     if (h.startsWith('#thread-')) {
       await renderThread(h.replace('#thread-',''));
@@ -3267,3 +3297,4 @@ function main() {
 </body>
 
 </html>
+
