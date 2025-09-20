@@ -1409,18 +1409,30 @@ function main() {
     }
   }
 
-function renderTermsPage() {
+// ▼▼▼▼▼ そして、この「時の掟」が刻まれた新たな神託を、削除した場所に召喚せよ！ ▼▼▼▼▼
+  function renderTermsPage() {
     document.getElementById('app').innerHTML = `<div class="card">
-      <h2>利用規約 / このサイトについて</h2>
-      <p style="font-weight: bold;">当サイトは、管理人（puyuyu）が個人的な趣味で開発・運営するファンコミュニティです。</p>
-      <p><strong>営利を主目的としたサイトでは断じてありません。</strong></p>
+      <h2>利用規約 / プライバシーポリシー</h2>
+      
+      <h4>このサイトについて</h4>
+      <p>当サイトは、管理人（puyuyu）が個人的な趣味で開発・運営するファンコミュニティです。営利を主目的としたサイトでは断じてありません。</p>
       <p>サイト内に表示される広告は、サーバー費用やドメイン維持費など、サイトの運営を継続するために必要な最低限の経費を賄うために設置しております。</p>
-      <p style="margin-top: 24px;">すべてのユーザーが快適に利用できるよう、ご協力をお願いします。</p>
+
+      <h4 style="margin-top: 24px;">ログ情報の取得と保持について</h4>
+      <p>当サイトでは、サービスの品質向上、不正利用の防止、およびトラブル発生時の原因究明を目的として、以下の情報をログとして自動的に取得・記録しています。</p>
+      <ul style="font-size: 14px; line-height: 1.6;">
+        <li><strong>IPアドレス:</strong> 荒らし行為やスパム投稿への対策のために記録します。</li>
+        <li><strong>ユーザーエージェント (ブラウザ情報):</strong> 技術的な問題の解決のために記録します。</li>
+        <li><strong>投稿・操作のタイムスタンプ:</strong> サービスの利用状況を把握するために記録します。</li>
+      </ul>
+      <p>これらの情報は、上記目的以外で利用することは一切ありません。また、法令に基づく開示請求があった場合を除き、第三者に開示することはありません。</p>
+      <p style="font-weight: bold;">これらのログ情報は、原則として30日間保持された後、自動的に消去されます。</p>
+
+      <p style="margin-top: 24px;">すべてのユーザーが快適に利用できるコミュニティを維持するため、皆様のご理解とご協力を心よりお願い申し上げます。</p>
       <button id="goHomeFromTermsBtn" class="btn">ホームに戻る</button>
     </div>`;
     document.getElementById('goHomeFromTermsBtn').onclick = goHome;
   }
-
   async function renderSettingsPage() {
     cleanupListeners();
     const user = getUser();
@@ -3367,5 +3379,6 @@ function renderTermsPage() {
 </script>
 <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 </body>
+
 
 </html>
