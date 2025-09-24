@@ -704,7 +704,7 @@ function main() {
     let drawingEventListeners = [];
     let bannerInterval = null;
 
-    const banRef = db.ref('globalBan');
+    const banRef = db.ref('globalBanIPs');
     banRef.on('value', (snapshot) => {
         globalBanList = snapshot.val() || {};
         const currentThreadId = location.hash.startsWith('#thread-') ? location.hash.replace('#thread-','') : null;
@@ -3469,4 +3469,5 @@ function main() {
 }
 </script>
 </body>
+
 </html>
